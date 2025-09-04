@@ -6,6 +6,7 @@ from transformers import T5Tokenizer, T5EncoderModel, CLIPTokenizer, CLIPTextMod
 
 import open_clip
 from ldm.util import default, count_params
+import os
 
 
 class AbstractEncoder(nn.Module):
@@ -92,10 +93,13 @@ class FrozenCLIPEmbedder(AbstractEncoder):
         "pooled",
         "hidden"
     ]
+    # openai/clip-vit-large-patch14 ./pretrained/clip-vit-large-patch14
     def __init__(self, version="openai/clip-vit-large-patch14", device="cuda", max_length=77,
                  freeze=True, layer="last", layer_idx=None):  # clip-vit-base-patch32
         super().__init__()
         assert layer in self.LAYERS
+        #os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"  # 指定镜像地址
+        # mirror_path = "https://hf-mirror.com/" + version  # 镜像路径
         self.tokenizer = CLIPTokenizer.from_pretrained(version)
         self.transformer = CLIPTextModel.from_pretrained(version)
         self.device = device
@@ -197,6 +201,7 @@ class FrozenCLIPT5Encoder(AbstractEncoder):
     def __init__(self, clip_version="openai/clip-vit-large-patch14", t5_version="google/t5-v1_1-xl", device="cuda",
                  clip_max_length=77, t5_max_length=77):
         super().__init__()
+        #os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"  # 指定镜像地址
         self.clip_encoder = FrozenCLIPEmbedder(clip_version, device, max_length=clip_max_length)
         self.t5_encoder = FrozenT5Embedder(t5_version, device, max_length=t5_max_length)
         print(f"{self.clip_encoder.__class__.__name__} has {count_params(self.clip_encoder)*1.e-6:.2f} M parameters, "

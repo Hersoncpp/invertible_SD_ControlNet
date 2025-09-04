@@ -3,12 +3,15 @@
 training/
 lightning_logs/
 image_log/
-
+diffuser_download/
+openai/
 *.pth
 *.pt
 *.ckpt
 *.safetensors
-
+*.json
+*.jpg
+*.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
