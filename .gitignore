@@ -5,6 +5,7 @@ lightning_logs/
 image_log/
 diffuser_download/
 openai/
+inv_modules/IVOP/experiments
 *.pth
 *.pt
 *.ckpt
