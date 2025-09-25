@@ -13,7 +13,7 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128"
 print("CUDA available: ", torch.cuda.is_available())
 
 
-batch_size = 1
+batch_size = 2
 logger_freq = 300
 learning_rate = 1e-5
 sd_locked = True
@@ -32,7 +32,7 @@ model.sd_locked = sd_locked
 model.only_mid_control = only_mid_control
 
 # dataset preparation (parquet file)
-data_dir = "./dataset/OmniEdit-Filtered-1.2M"
+data_dir = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M_train_filtered"
 dataloader = DataLoader(MyDataset(data_json_file=f'{data_dir}/prompts.json'), batch_size=batch_size, shuffle=True, num_workers=4)
 
 logger = ImageLogger(batch_frequency=logger_freq)
@@ -48,4 +48,9 @@ trainer.fit(model, dataloader)
 
 checkpoints_dir = './train/checkpoints'
 os.makedirs(checkpoints_dir, exist_ok=True)
-trainer.save_checkpoint(f'{checkpoints_dir}/{model_name}-finetuned.ckpt')
+save_path = f'{checkpoints_dir}/{model_name}-finetuned.ckpt'
+idx = 0
+while save_path is not None and os.path.exists(save_path):
+    save_path = save_path.replace('.ckpt', f'_{idx}.ckpt')
+    idx += 1
+trainer.save_checkpoint(save_path)

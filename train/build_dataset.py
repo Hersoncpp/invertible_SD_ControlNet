@@ -38,7 +38,7 @@ def build_dataset_from_parquet_file(parquet_file, src_img_dir, tar_img_dir, prom
     
     # read the parquet file
     df = pd.read_parquet(parquet_file)
-    print(df.shape)
+    print("full size:", df.shape)
     # show the first rows
     # print(df.head(1))
     # # show the columns
@@ -48,7 +48,7 @@ def build_dataset_from_parquet_file(parquet_file, src_img_dir, tar_img_dir, prom
 
     # read out the src_img and edited_img and edited_prompt_list with task as 'style'
     df_style = df[df['task'] == 'style'][['omni_edit_id', 'src_img', 'edited_img', 'edited_prompt_list']]
-
+    print("style size:", df_style.shape)
     # print(df_style.head(1))
     # print(df_style.iloc[0])
     # print(df_style.iloc[0].src_img.keys())
@@ -82,7 +82,7 @@ def build_dataset_from_parquet_file(parquet_file, src_img_dir, tar_img_dir, prom
         # print(f"Source Image Size: {src_img.size}, Edited Image Size: {edited_img.size}")
         # print(f"Edited Prompts: {edited_prompt}")
 
-        prompt_txt = "{\"source\": \"" + str(src_img_fpth) + "\", \"target\": \"" + str(edited_img_fpth) + "\", \"prompt\": \"" + edited_prompt.replace("'", "\'") + "\"}\n"
+        prompt_txt = "{\"source\": \"" + str(src_img_fpth) + "\", \"target\": \"" + str(edited_img_fpth) + "\", \"prompt\": \"" + edited_prompt.replace("'", "\'").replace('"', '\"') + "\"}\n"
         with open(prompts_json_path, "a") as f:
             f.write(prompt_txt)
 
@@ -104,8 +104,13 @@ def clear_directory(dir_path):
 if __name__ == "__main__":
     from pathlib import Path
 
-    parquet_files = ['/home/hesong/disk1/DF_INV/raw_data/OmniEdit-Filtered-1.2M/data/dev-00000-of-00001.parquet']
-    data_dir = './dataset/OmniEdit-Filtered-1.2M'
+    # parquet_files = ['/home/hesong/disk1/DF_INV/raw_data/OmniEdit-Filtered-1.2M/data/dev-00000-of-00001.parquet']
+    parquet_files = []
+    for i in range(100, 571):
+        # 保持5位数 00010, 00001
+        parquet_file = f'/home/hesong/disk1/DF_INV/raw_data/OmniEdit-Filtered-1.2M/data/train-{i:05d}-of-00571.parquet'
+        parquet_files.append(parquet_file)
+    data_dir = './dataset/OmniEdit-Filtered-1.2M_train'
     data_dir = Path(data_dir)
     if data_dir.exists() is False:
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -124,4 +129,5 @@ if __name__ == "__main__":
     with open(prompts_json_path, "wt") as f:
         f.write("") # clear the file if exists
     for parquet_file in parquet_files:
+        print(f"Processing {parquet_file}...")
         build_dataset_from_parquet_file(parquet_file=parquet_file, src_img_dir=src_img_dir, tar_img_dir=tar_img_dir, prompts_json_path=prompts_json_path)
