@@ -13,6 +13,7 @@ inv_modules/IVOP/experiments
 *.json
 *.jpg
 *.png
+*.state
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
