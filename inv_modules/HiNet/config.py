@@ -13,22 +13,26 @@ lamda_low_frequency = 1
 device_ids = [0]
 
 # Train:
-batch_size = 16
-cropsize = 224
+batch_size = 8
+cropsize = 192
 betas = (0.5, 0.999)
 weight_step = 1000
 gamma = 0.5
 
 # Val:
-cropsize_val = 1024
-batchsize_val = 2
+cropsize_val = 256
+batchsize_val = 1
 shuffle_val = False
 val_freq = 50
 
 
 # Dataset
-TRAIN_PATH = '/home/jjp/Dataset/DIV2K/DIV2K_train_HR/'
-VAL_PATH = '/home/jjp/Dataset/DIV2K/DIV2K_valid_HR/'
+# TRAIN_JSON_PATH  =  "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M_train_filtered/prompts.json"
+TRAIN_JSON_PATH  =  "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST_full/prompts.json"
+# TRAIN_JSON_PATH  = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST/prompts.json"
+VAL_JSON_PATH  = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST/prompts.json"
+# TRAIN_PATH = '/home/jjp/Dataset/DIV2K/DIV2K_train_HR/'
+# VAL_PATH = '/home/jjp/Dataset/DIV2K/DIV2K_valid_HR/'
 format_train = 'png'
 format_val = 'png'
 
@@ -42,17 +46,18 @@ progress_bar = False
 
 # Saving checkpoints:
 
-MODEL_PATH = '/home/jjp/Hinet/model/'
+MODEL_PATH = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/model/'
 checkpoint_on_error = True
 SAVE_freq = 50
 
-IMAGE_PATH = '/home/jjp/Hinet/image/'
+IMAGE_PATH = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/'
 IMAGE_PATH_cover = IMAGE_PATH + 'cover/'
 IMAGE_PATH_secret = IMAGE_PATH + 'secret/'
 IMAGE_PATH_steg = IMAGE_PATH + 'steg/'
 IMAGE_PATH_secret_rev = IMAGE_PATH + 'secret-rev/'
 
 # Load:
-suffix = 'model.pt'
+suffix = 'model_checkpoint_00050_full_control.pt'
 tain_next = False
 trained_epoch = 0
+save_suffix = "full_control" # "partial" or "full"

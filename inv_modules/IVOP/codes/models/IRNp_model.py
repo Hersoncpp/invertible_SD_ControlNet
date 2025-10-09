@@ -9,8 +9,11 @@ import models.lr_scheduler as lr_scheduler
 from .base_model import BaseModel
 from models.modules.loss import GANLoss, ReconstructionLoss, SSIMLoss
 from models.modules.Quantization import Quantization
+from models.modules.Jpeg_Compress import Jpeg_Compress_Layer
 import lpips
-
+import utils.util as util
+import cv2
+import numpy as np
 logger = logging.getLogger('base')
 
 class IRNpModel(BaseModel):
@@ -37,6 +40,7 @@ class IRNpModel(BaseModel):
         self.load()
 
         self.Quantization = Quantization()
+        self.Compression = Jpeg_Compress_Layer()
 
         if self.is_train:
             # self.netD = networks.define_D(opt).to(self.device)
@@ -196,7 +200,7 @@ class IRNpModel(BaseModel):
         return l_g_fea
         
 
-    def optimize_parameters(self, step):
+    def optimize_parameters(self, step, compress_flag = False):
         # G
         # for p in self.netD.parameters():
         #     p.requires_grad = False
@@ -211,9 +215,15 @@ class IRNpModel(BaseModel):
 
         loss = 0
         zshape = self.output[:, 3:, :, :].shape
-
+        ########################
+        # Quantization before feeding into the invertible model
         LR = self.Quantization(self.output[:, :3, :, :])
 
+        if compress_flag:
+            print('using jpeg compression')
+            LR = self.Compression(LR).to(self.device)
+        
+        ########################
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
         y_ = torch.cat((LR, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
 
@@ -290,7 +300,7 @@ class IRNpModel(BaseModel):
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
         self.netG.train()
 
-    def test(self):
+    def test(self, compress_flag=False):
         Lshape = self.ref_L.shape
 
         input_dim = Lshape[1]
@@ -312,7 +322,30 @@ class IRNpModel(BaseModel):
             else:
                 self.forw_L = self.netG(x=self.input, uninv_input=self.uninv_input)[:, :3, :, :]
             self.forw_L = self.Quantization(self.forw_L)
-            y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+            if compress_flag:
+                # print('using jpg compression')
+                # print('before saving forw_L min max:', self.forw_L.min().item(), self.forw_L.max().item())
+                # print(self.forw_L)
+                # save forw_L for using cv2.imwrite
+                save_path_tmp = 'tmp_forw_L.jpg'
+                tmp_forw_L_img = util.tensor2img(self.forw_L)
+                # util.save_img(tmp_forw_L_img, save_path_tmp, quality=95)
+                util.save_img(tmp_forw_L_img, save_path_tmp)
+                # Reread the tmp_forw_L_img:
+                # print("intermediate tmp_forw_L_img before saving:")
+                # print(tmp_forw_L_img)
+                tmp_forw_L_img = cv2.imread(save_path_tmp)
+                # print('intermediate tmp_forw_L_img after saving and reading:')
+                # print(tmp_forw_L_img)
+                # BGR to RGB
+                tmp_forw_L_img = cv2.cvtColor(tmp_forw_L_img, cv2.COLOR_BGR2RGB)
+                tmp_forw_L_img = tmp_forw_L_img.astype('float32') / 255.0
+                tmp_forw_L_img = torch.from_numpy(np.transpose(tmp_forw_L_img, (2, 0, 1))).float().unsqueeze(0).to(self.device)
+                # print('after jpg compression forw_L min max:', tmp_forw_L_img.min().item(), tmp_forw_L_img.max().item())
+                # print(tmp_forw_L_img)
+                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+            else:
+                y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
 
         self.netG.train()

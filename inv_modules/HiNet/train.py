@@ -9,17 +9,20 @@ import config as c
 from tensorboardX import SummaryWriter
 import datasets
 import viz
+import logging
 import modules.Unet_common as common
 import warnings
+import util
 
 warnings.filterwarnings("ignore")
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+torch.cuda.set_device(c.device_ids[0])
+device = torch.device(f"cuda:{c.device_ids[0]}" if torch.cuda.is_available() else "cpu")
+log_opt = True
 
 def gauss_noise(shape):
-    noise = torch.zeros(shape).cuda()
+    noise = torch.zeros(shape).to(device)
     for i in range(noise.shape[0]):
-        noise[i] = torch.randn(noise[i].shape).cuda()
+        noise[i] = torch.randn(noise[i].shape).to(device)
 
     return noise
 
@@ -74,7 +77,7 @@ def load(name):
 # Model initialize: #
 #####################
 net = Model()
-net.cuda()
+net.to(device)
 init_model(net)
 net = torch.nn.DataParallel(net, device_ids=c.device_ids)
 para = get_parameter_number(net)
@@ -90,33 +93,63 @@ iwt = common.IWT()
 if c.tain_next:
     load(c.MODEL_PATH + c.suffix)
 
+if log_opt:
+    util.setup_logger('train', '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/logging/', 'train_', level=logging.INFO, screen=True, tofile=True)
+    logger_train = logging.getLogger('train')
+    logger_train.info(net)
+
+
 try:
     writer = SummaryWriter(comment='hinet', filename_suffix="steg")
 
     for i_epoch in range(c.epochs):
         i_epoch = i_epoch + c.trained_epoch + 1
         loss_history = []
-
+        if log_opt:
+            g_loss_history = []
+            r_loss_history = []
+            l_loss_history = []
         #################
         #     train:    #
         #################
 
         for i_batch, data in enumerate(datasets.trainloader):
-            data = data.to(device)
-            cover = data[data.shape[0] // 2:]
-            secret = data[:data.shape[0] // 2]
+            # cover = data[data.shape[0] // 2:]
+            # secret = data[:data.shape[0] // 2]
+            cover = data['target'].to(device)
+            secret = data['source'].to(device)
+            # print('cover shape:', cover.shape)
+            # print('secret shape:', secret.shape)
+            # print("cover device:", cover.device)
+            # print("secret device:", secret.device)
             cover_input = dwt(cover)
             secret_input = dwt(secret)
+            # print("cover_input device:", cover_input.device)
+            # print("secret_input device:", secret_input.device)
+            # print('cover_input shape:', cover_input.shape)
+            # print('secret_input shape:', secret_input.shape)
 
             input_img = torch.cat((cover_input, secret_input), 1)
-
+            # print("input_img device:", input_img.device)
+            # print('input_img shape:', input_img.shape)
             #################
             #    forward:   #
             #################
             output = net(input_img)
+            # print("output device:", output.device)
+            # print('output shape:', output.shape)
+            
+            ##############################
+            # intermediate steg value used for reverse process visualization without quantization or clamping
             output_steg = output.narrow(1, 0, 4 * c.channels_in)
+            ##############################
+            
             output_z = output.narrow(1, 4 * c.channels_in, output.shape[1] - 4 * c.channels_in)
             steg_img = iwt(output_steg)
+            # print("steg_img device:", steg_img.device)
+            # print("output_z device:", output_z.device)
+            # print('steg_img shape:', steg_img.shape)
+            # print('output_z shape:', output_z.shape)
 
             #################
             #   backward:   #
@@ -128,12 +161,12 @@ try:
             output_image = net(output_rev, rev=True)
 
             secret_rev = output_image.narrow(1, 4 * c.channels_in, output_image.shape[1] - 4 * c.channels_in)
-            secret_rev = iwt(secret_rev)
+            secret_rev = iwt(secret_rev).to(device)
 
             #################
             #     loss:     #
             #################
-            g_loss = guide_loss(steg_img.cuda(), cover.cuda())
+            g_loss = guide_loss(steg_img, cover)
             r_loss = reconstruction_loss(secret_rev, secret)
             steg_low = output_steg.narrow(1, 0, c.channels_in)
             cover_low = cover_input.narrow(1, 0, c.channels_in)
@@ -145,10 +178,17 @@ try:
             optim.zero_grad()
 
             loss_history.append([total_loss.item(), 0.])
+            if log_opt:
+                g_loss_history.append([g_loss.item(), 0.])
+                r_loss_history.append([r_loss.item(), 0.])
+                l_loss_history.append([l_loss.item(), 0.])
 
         epoch_losses = np.mean(np.array(loss_history), axis=0)
         epoch_losses[1] = np.log10(optim.param_groups[0]['lr'])
-
+        if log_opt:
+            r_epoch_losses = np.mean(np.array(r_loss_history), axis=0)
+            g_epoch_losses = np.mean(np.array(g_loss_history), axis=0)
+            l_epoch_losses = np.mean(np.array(l_loss_history), axis=0)
         #################
         #     val:    #
         #################
@@ -158,9 +198,10 @@ try:
                 psnr_c = []
                 net.eval()
                 for x in datasets.testloader:
-                    x = x.to(device)
-                    cover = x[x.shape[0] // 2:, :, :, :]
-                    secret = x[:x.shape[0] // 2, :, :, :]
+                    # cover = x[x.shape[0] // 2:, :, :, :]
+                    # secret = x[:x.shape[0] // 2, :, :, :]
+                    cover = x['target'].to(device)
+                    secret = x['source'].to(device)
                     cover_input = dwt(cover)
                     secret_input = dwt(secret)
 
@@ -178,7 +219,7 @@ try:
                     #################
                     #   backward:   #
                     #################
-                    output_steg = output_steg.cuda()
+                    output_steg = output_steg.to(device)
                     output_rev = torch.cat((output_steg, output_z), 1)
                     output_image = net(output_rev, rev=True)
                     secret_rev = output_image.narrow(1, 4 * c.channels_in, output_image.shape[1] - 4 * c.channels_in)
@@ -199,17 +240,32 @@ try:
 
                 writer.add_scalars("PSNR_S", {"average psnr": np.mean(psnr_s)}, i_epoch)
                 writer.add_scalars("PSNR_C", {"average psnr": np.mean(psnr_c)}, i_epoch)
-
+                if log_opt:
+                    logger_train.info(
+                        f"TEST:   "
+                        f'PSNR_S: {np.mean(psnr_s):.4f} | '
+                        f'PSNR_C: {np.mean(psnr_c):.4f} | '
+                    )
         viz.show_loss(epoch_losses)
         writer.add_scalars("Train", {"Train_Loss": epoch_losses[0]}, i_epoch)
 
+        if log_opt:
+            logger_train.info(f"Learning rate: {optim.param_groups[0]['lr']}")
+            logger_train.info(
+                f"Train epoch {i_epoch}:   "
+                f'Loss: {epoch_losses[0].item():.4f} | '
+                f'r_Loss: {r_epoch_losses[0].item():.4f} | '
+                f'g_Loss: {g_epoch_losses[0].item():.4f} | '
+                f'l_Loss: {l_epoch_losses[0].item():.4f} | '
+            )
+
         if i_epoch > 0 and (i_epoch % c.SAVE_freq) == 0:
             torch.save({'opt': optim.state_dict(),
-                        'net': net.state_dict()}, c.MODEL_PATH + 'model_checkpoint_%.5i' % i_epoch + '.pt')
+                        'net': net.state_dict()}, c.MODEL_PATH + 'model_checkpoint_%.5i' % i_epoch + '_' + c.save_suffix + '.pt')
         weight_scheduler.step()
 
     torch.save({'opt': optim.state_dict(),
-                'net': net.state_dict()}, c.MODEL_PATH + 'model' + '.pt')
+                'net': net.state_dict()}, c.MODEL_PATH + 'model' + '_' + c.save_suffix + '.pt')
     writer.close()
 
 except:

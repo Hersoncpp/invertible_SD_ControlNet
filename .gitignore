@@ -1,4 +1,5 @@
 .idea/
+runs/
 
 training/
 lightning_logs/

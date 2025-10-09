@@ -2,7 +2,7 @@ import torch.optim
 import torch.nn as nn
 import config as c
 from hinet import Hinet
-
+device = torch.device(f"cuda:{c.device_ids[0]}" if torch.cuda.is_available() else "cpu")
 
 class Model(nn.Module):
     def __init__(self):
@@ -25,6 +25,6 @@ def init_model(mod):
     for key, param in mod.named_parameters():
         split = key.split('.')
         if param.requires_grad:
-            param.data = c.init_scale * torch.randn(param.data.shape).cuda()
+            param.data = c.init_scale * torch.randn(param.data.shape).to(device)
             if split[-2] == 'conv5':
                 param.data.fill_(0.)

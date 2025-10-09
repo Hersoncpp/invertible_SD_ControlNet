@@ -31,7 +31,7 @@ network_G:
       non_inv_block: "Identity" #"control_v11e_sd15_ip2p-finetuned"
   in_nc: 3
   out_nc: 3
-  block_num: [8] #8
+  block_num: [8, 4] #8
   scale: 1
   init: xavier
 
@@ -40,7 +40,8 @@ network_G:
 
 path:
   # pretrain_model_G: /disk1/ouyang/proj/invert_image_op/Invertible-Image-Rescaling/experiments/jpg_WMF_twoBranches_4_1/models/100000_G.pth 
-  pretrain_model_G: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv/models/latest_G.pth
+  # pretrain_model_G: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv/models/latest_G.pth
+  pretrain_model_G: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv_archived_250927-194353/models/latest_G.pth
 
 #### logger
 

@@ -122,8 +122,12 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
     return img_np.astype(out_type)
 
 
-def save_img(img, img_path, mode='RGB'):
-    cv2.imwrite(img_path, img)
+def save_img(img, img_path, mode='RGB', quality=95):
+    # if jpg, quality from 0 to 100 (higher is better).
+    if img_path.split('.')[-1].lower() in ['jpg', 'jpeg']:
+        cv2.imwrite(img_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
+    else: # png
+        cv2.imwrite(img_path, img)
 
 
 ####################

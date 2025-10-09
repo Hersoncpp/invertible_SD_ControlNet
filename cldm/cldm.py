@@ -157,10 +157,10 @@ class ControlNet(nn.Module):
             nn.SiLU(),
             conv_nd(dims, 96, 96, 3, padding=1),
             nn.SiLU(),
-            conv_nd(dims, 96, 256, 3, padding=1, stride=2),
+            conv_nd(dims, 96, 256, 3, padding=1, stride=2), # size H/8 x W/8 x 256
             nn.SiLU(),
-            zero_module(conv_nd(dims, 256, model_channels, 3, padding=1))
-        )
+            zero_module(conv_nd(dims, 256, model_channels, 3, padding=1)) # size H/8 x W/8 x model_channels(320)
+        ) # down x8 from image to latent
 
         self._feature_size = model_channels
         input_block_chans = [model_channels]

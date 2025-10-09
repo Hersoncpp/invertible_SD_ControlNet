@@ -3,6 +3,7 @@ import json
 import cv2
 from PIL import Image
 import sys
+from tqdm import tqdm
 sys.path.append('/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly')
 from ip2p_predict import predict
 
@@ -28,19 +29,21 @@ def fun(image, prompt, transform):
 
 if __name__ == "__main__":
     dataset_dir = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset"
-    dataset_name = "ControlNet_ST"
+    # dataset_name = "ControlNet_ST"
+    dataset_name = "ControlNet_ST_full"
     save_dir = f"{dataset_dir}/{dataset_name}"
     src_img_dir = f"{save_dir}/source_images"
     tar_img_dir = f"{save_dir}/target_images"
     prompt_json_path = f"{save_dir}/prompts.json"
-    prompts_read_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M/prompts.json"
-    predict_trans = predict(cuda_id=1)
+    # prompts_read_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M/prompts.json"
+    prompts_read_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M_train_filtered/prompts.json"
+    predict_trans = predict(model_name="control_v11e_sd15_ip2p-finetuned_1", cuda_id=5)
     transform_func = fun
 
     if os.path.exists(save_dir) is False:
         os.makedirs(save_dir)
-    # if os.path.exists(src_img_dir) is False:
-    #     os.makedirs(src_img_dir)
+    if os.path.exists(src_img_dir) is False:
+        os.makedirs(src_img_dir)
     if os.path.exists(tar_img_dir) is False:
         os.makedirs(tar_img_dir)
 
@@ -52,7 +55,7 @@ if __name__ == "__main__":
         os.remove(prompt_json_path)
     
     with open(prompts_read_path, 'rt') as f:
-        for line in f:
+        for line in tqdm(f):
             _dict = json.loads(line)
             source_fpth = _dict['source']
             src_name = os.path.basename(source_fpth)
@@ -72,3 +75,4 @@ if __name__ == "__main__":
 
             with open(prompt_json_path, "a") as f:
                 f.write(prompt_txt)
+            print(f"Processed {src_name}, saved to {target_fpth}")

@@ -19,7 +19,7 @@ from cldm.ddim_hacked import DDIMSampler
 def predict(model_name = "control_v11e_sd15_ip2p-finetuned", cuda_id = 0):
     torch.cuda.set_device(cuda_id)
     model_name_ = model_name
-    if model_name == "control_v11e_sd15_ip2p-finetuned":
+    if "control_v11e_sd15_ip2p-finetuned" in model_name:
         model_name_ = 'control_v11e_sd15_ip2p' 
     model = create_model(f'./models/{model_name_}.yaml').cpu()
     model.load_state_dict(load_state_dict('./models/v1-5-pruned.ckpt', location='cuda'), strict=False)

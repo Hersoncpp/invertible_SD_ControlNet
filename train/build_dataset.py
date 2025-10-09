@@ -82,7 +82,7 @@ def build_dataset_from_parquet_file(parquet_file, src_img_dir, tar_img_dir, prom
         # print(f"Source Image Size: {src_img.size}, Edited Image Size: {edited_img.size}")
         # print(f"Edited Prompts: {edited_prompt}")
 
-        prompt_txt = "{\"source\": \"" + str(src_img_fpth) + "\", \"target\": \"" + str(edited_img_fpth) + "\", \"prompt\": \"" + edited_prompt.replace("'", "\'").replace('"', '\"') + "\"}\n"
+        prompt_txt = "{\"source\": \"" + str(src_img_fpth) + "\", \"target\": \"" + str(edited_img_fpth) + "\", \"prompt\": \"" + edited_prompt.replace("'", "\\'").replace('"', '\\"') + "\"}\n"
         with open(prompts_json_path, "a") as f:
             f.write(prompt_txt)
 

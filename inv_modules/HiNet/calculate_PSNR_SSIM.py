@@ -14,15 +14,20 @@ def main():
 
     # GT - Ground-truth;
     # Gen: Generated / Restored / Recovered images
-    folder_GT = '/home/jjp/Hinet/image/cover/'
-    folder_Gen = '/home/jjp/Hinet/image/steg/'
+    folder_GT = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/secret'
+    folder_Gen = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/secret-rev'
+    # folder_GT = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/cover'
+    # folder_Gen = '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/steg' 
     crop_border = 1
     suffix = '_secret_rev'  # suffix for Gen images
-    test_Y = True  # True: test Y channel only; False: test RGB channels
-
+    test_Y = False  # True: test Y channel only; False: test RGB channels
+    crop_size = 1
     PSNR_all = []
     SSIM_all = []
-    img_list = sorted(glob.glob(folder_GT + '/*'))
+    img_list = sorted(glob.glob(folder_GT + '/*.jpg'))
+    # img_list = sorted(glob.glob(folder_GT + '/*.png'))
+    print(len(img_list))
+    # print(img_list)
     img_list = natsorted(img_list)
 
     if test_Y:
@@ -37,16 +42,21 @@ def main():
         # print(base_name)
         # print(img_path)
         # print(os.path.join(folder_Gen, base_name + '.png'))
-        im_Gen = cv2.imread(os.path.join(folder_Gen, base_name + '.png')) / 255.
+        im_Gen = cv2.imread(os.path.join(folder_Gen, base_name + '.jpg')) / 255.
+        # im_Gen = cv2.imread(os.path.join(folder_Gen, base_name + '.png')) / 255.
 
 
         if test_Y and im_GT.shape[2] == 3:  # evaluate on Y channel in YCbCr color space
             im_GT_in = bgr2ycbcr(im_GT)
             im_Gen_in = bgr2ycbcr(im_Gen)
+            # print('######################################################')
         else:
             im_GT_in = im_GT
             im_Gen_in = im_Gen
 
+        if crop_size is not None:
+            im_GT_in = im_GT_in[crop_size:-crop_size, crop_size:-crop_size, :]
+            im_Gen_in = im_Gen_in[crop_size:-crop_size, crop_size:-crop_size, :]
         # # crop borders
         # if im_GT_in.ndim == 3:
         #     cropped_GT = im_GT_in[crop_border:-crop_border, crop_border:-crop_border, :]

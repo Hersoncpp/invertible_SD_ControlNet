@@ -5,6 +5,9 @@ import torch.nn as nn
 
 from modules import module_util as mutil
 import functools
+import config as c
+
+device = torch.device(f"cuda:{c.device_ids[0]}" if torch.cuda.is_available() else "cpu")
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True, dilation=1, use_snorm=False):
     if use_snorm:
@@ -124,7 +127,7 @@ def iwt_init(x):
     x4 = x[:, out_channel * 3:out_channel * 4, :, :] / 2
 
 
-    h = torch.zeros([out_batch, out_channel, out_height, out_width]).float().cuda()
+    h = torch.zeros([out_batch, out_channel, out_height, out_width]).float().to(device)
 
     h[:, :, 0::2, 0::2] = x1 - x2 - x3 + x4
     h[:, :, 1::2, 0::2] = x1 - x2 + x3 - x4

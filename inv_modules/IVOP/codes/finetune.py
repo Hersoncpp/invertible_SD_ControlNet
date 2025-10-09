@@ -34,9 +34,10 @@ def main():
                         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
-    print(args.opt)
+    # print(args.opt)
     opt = option.parse(args.opt, is_train=True)
-    print(opt)
+    # print(opt)
+    print("compress_flag: ", opt['compress_flag'])
     #### distributed training settings
     if args.launcher == 'none':  # disabled distributed training
         opt['dist'] = False
@@ -57,8 +58,9 @@ def main():
         print(resume_state)
         option.check_resume(opt, resume_state['iter'])  # check resume options
     else:
+        # warning: cannot resume
         resume_state = None
-
+        print('Cannot find resume_state. Training from scratch.')
     #### mkdir and loggers
     if rank <= 0:  # normal training (rank -1) OR distributed training (rank 0)
         if resume_state is None:

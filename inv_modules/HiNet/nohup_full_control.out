@@ -1,0 +1,765 @@
+nohup: ignoring input
+25-09-27 19:40:40.562 - INFO: DataParallel(
+  (module): Model(
+    (model): Hinet(
+      (inv1): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv2): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv3): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv4): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv5): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv6): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv7): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv8): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv9): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv10): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv11): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv12): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv13): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv14): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv15): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+      (inv16): INV_block(
+        (r): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (y): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+        (f): ResidualDenseBlock_out(
+          (conv1): Conv2d(12, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv2): Conv2d(44, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv3): Conv2d(76, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv4): Conv2d(108, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (conv5): Conv2d(140, 12, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (lrelu): LeakyReLU(negative_slope=0.01, inplace=True)
+        )
+      )
+    )
+  )
+)
+Loaded 1500 data from /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST_full/prompts.json
+Loaded 103 data from /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST/prompts.json
+==========================================================================================
+Config options:
+
+  IMAGE_PATH               	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/
+  IMAGE_PATH_cover         	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/cover/
+  IMAGE_PATH_secret        	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/secret/
+  IMAGE_PATH_secret_rev    	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/secret-rev/
+  IMAGE_PATH_steg          	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/steg/
+  MODEL_PATH               	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/model/
+  SAVE_freq                	50
+  TRAIN_JSON_PATH          	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST_full/prompts.json
+  VAL_JSON_PATH            	/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/data/dataset/ControlNet_ST/prompts.json
+  batch_size               	8
+  batchsize_val            	2
+  betas                    	(0.5, 0.999)
+  channels_in              	3
+  checkpoint_on_error      	True
+  clamp                    	2.0
+  cropsize                 	192
+  cropsize_val             	1024
+  device_ids               	[4]
+  epochs                   	1000
+  format_train             	png
+  format_val               	png
+  gamma                    	0.5
+  init_scale               	0.01
+  lamda_guide              	1
+  lamda_low_frequency      	1
+  lamda_reconstruction     	5
+  live_visualization       	False
+  log10_lr                 	-4.5
+  loss_display_cutoff      	2.0
+  loss_names               	['L', 'lr']
+  lr                       	3.1622776601683795e-05
+  progress_bar             	False
+  save_suffix              	full_control
+  shuffle_val              	False
+  silent                   	False
+  suffix                   	modelmodel_checkpoint_00100.pt
+  tain_next                	False
+  trained_epoch            	0
+  val_freq                 	50
+  weight_decay             	1e-05
+  weight_step              	1000
+==========================================================================================
+
+Epoch		L		lr
+{'Total': 4050240, 'Trainable': 4050240}
+25-09-27 19:43:22.116 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:43:22.116 - INFO: Train epoch 1:   Loss: 466787.6798 | r_Loss: 86114.4212 | g_Loss: 32656.8269 | l_Loss: 3558.7452 | 
+                                                                                 001		466787.6798		-4.5000
+25-09-27 19:46:03.614 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:46:03.615 - INFO: Train epoch 2:   Loss: 86492.5915 | r_Loss: 15367.0598 | g_Loss: 9341.6211 | l_Loss: 315.6711 | 
+                                                                                 002		86492.5915		-4.5000
+25-09-27 19:48:45.666 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:48:45.666 - INFO: Train epoch 3:   Loss: 68128.2296 | r_Loss: 11721.6012 | g_Loss: 8966.1633 | l_Loss: 554.0600 | 
+                                                                                 003		68128.2296		-4.5000
+25-09-27 19:51:28.281 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:51:28.281 - INFO: Train epoch 4:   Loss: 52573.1528 | r_Loss: 8295.9135 | g_Loss: 10738.4104 | l_Loss: 355.1749 | 
+                                                                                 004		52573.1528		-4.5000
+25-09-27 19:54:10.525 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:54:10.526 - INFO: Train epoch 5:   Loss: 35220.2090 | r_Loss: 5666.3862 | g_Loss: 6759.1119 | l_Loss: 129.1659 | 
+                                                                                 005		35220.2090		-4.5000
+25-09-27 19:56:53.477 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:56:53.477 - INFO: Train epoch 6:   Loss: 30308.6786 | r_Loss: 4959.3558 | g_Loss: 5404.7195 | l_Loss: 107.1803 | 
+                                                                                 006		30308.6786		-4.5000
+25-09-27 19:59:36.301 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 19:59:36.302 - INFO: Train epoch 7:   Loss: 26161.7215 | r_Loss: 4338.6927 | g_Loss: 4369.4980 | l_Loss: 98.7597 | 
+                                                                                 007		26161.7215		-4.5000
+25-09-27 20:02:35.804 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:02:35.805 - INFO: Train epoch 8:   Loss: 21091.9292 | r_Loss: 3442.9347 | g_Loss: 3779.1769 | l_Loss: 98.0786 | 
+                                                                                 008		21091.9292		-4.5000
+25-09-27 20:05:48.095 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:05:48.096 - INFO: Train epoch 9:   Loss: 23959.5613 | r_Loss: 3886.9804 | g_Loss: 4396.4555 | l_Loss: 128.2037 | 
+                                                                                 009		23959.5613		-4.5000
+25-09-27 20:08:30.885 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:08:30.886 - INFO: Train epoch 10:   Loss: 16946.1755 | r_Loss: 2674.0878 | g_Loss: 3474.6667 | l_Loss: 101.0700 | 
+                                                                                 010		16946.1755		-4.5000
+25-09-27 20:11:13.224 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:11:13.224 - INFO: Train epoch 11:   Loss: 14228.3098 | r_Loss: 2210.1335 | g_Loss: 3085.8077 | l_Loss: 91.8347 | 
+                                                                                 011		14228.3098		-4.5000
+25-09-27 20:13:55.633 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:13:55.633 - INFO: Train epoch 12:   Loss: 13058.8313 | r_Loss: 2024.5908 | g_Loss: 2842.2067 | l_Loss: 93.6708 | 
+                                                                                 012		13058.8313		-4.5000
+25-09-27 20:16:37.587 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:16:37.588 - INFO: Train epoch 13:   Loss: 11263.9860 | r_Loss: 1724.0178 | g_Loss: 2549.0093 | l_Loss: 94.8877 | 
+                                                                                 013		11263.9860		-4.5000
+25-09-27 20:19:45.837 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:19:45.838 - INFO: Train epoch 14:   Loss: 55264.0506 | r_Loss: 8365.4262 | g_Loss: 12492.0036 | l_Loss: 944.9165 | 
+                                                                                 014		55264.0506		-4.5000
+25-09-27 20:22:49.514 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:22:49.515 - INFO: Train epoch 15:   Loss: 21097.5592 | r_Loss: 3108.7722 | g_Loss: 5393.4327 | l_Loss: 160.2653 | 
+                                                                                 015		21097.5592		-4.5000
+25-09-27 20:25:41.661 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:25:41.662 - INFO: Train epoch 16:   Loss: 16321.9896 | r_Loss: 2410.9794 | g_Loss: 4131.7530 | l_Loss: 135.3396 | 
+                                                                                 016		16321.9896		-4.5000
+25-09-27 20:29:00.791 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:29:00.791 - INFO: Train epoch 17:   Loss: 13072.0364 | r_Loss: 1869.5503 | g_Loss: 3601.1799 | l_Loss: 123.1051 | 
+                                                                                 017		13072.0364		-4.5000
+25-09-27 20:31:43.140 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:31:43.140 - INFO: Train epoch 18:   Loss: 11033.8864 | r_Loss: 1562.6779 | g_Loss: 3110.4989 | l_Loss: 109.9982 | 
+                                                                                 018		11033.8864		-4.5000
+25-09-27 20:34:25.897 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:34:25.897 - INFO: Train epoch 19:   Loss: 10168.9725 | r_Loss: 1456.9743 | g_Loss: 2780.6499 | l_Loss: 103.4509 | 
+                                                                                 019		10168.9725		-4.5000
+25-09-27 20:37:08.275 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:37:08.275 - INFO: Train epoch 20:   Loss: 8980.4131 | r_Loss: 1277.9213 | g_Loss: 2492.9206 | l_Loss: 97.8860 | 
+                                                                                 020		8980.4131		-4.5000
+25-09-27 20:39:50.836 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:39:50.836 - INFO: Train epoch 21:   Loss: 8532.1059 | r_Loss: 1218.5820 | g_Loss: 2342.8539 | l_Loss: 96.3420 | 
+                                                                                 021		8532.1059		-4.5000
+25-09-27 20:42:32.874 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:42:32.874 - INFO: Train epoch 22:   Loss: 7666.0046 | r_Loss: 1096.0792 | g_Loss: 2096.5837 | l_Loss: 89.0251 | 
+                                                                                 022		7666.0046		-4.5000
+25-09-27 20:45:15.530 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:45:15.531 - INFO: Train epoch 23:   Loss: 7109.3761 | r_Loss: 1014.3230 | g_Loss: 1953.7256 | l_Loss: 84.0356 | 
+                                                                                 023		7109.3761		-4.5000
+25-09-27 20:47:57.740 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:47:57.740 - INFO: Train epoch 24:   Loss: 6708.3747 | r_Loss: 952.0005 | g_Loss: 1868.8630 | l_Loss: 79.5094 | 
+                                                                                 024		6708.3747		-4.5000
+25-09-27 20:50:40.028 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:50:40.029 - INFO: Train epoch 25:   Loss: 24995.8348 | r_Loss: 3734.4858 | g_Loss: 5699.0427 | l_Loss: 624.3632 | 
+                                                                                 025		24995.8348		-4.5000
+25-09-27 20:53:22.262 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:53:22.262 - INFO: Train epoch 26:   Loss: 8679.0863 | r_Loss: 1088.8237 | g_Loss: 3155.6735 | l_Loss: 79.2945 | 
+                                                                                 026		8679.0863		-4.5000
+25-09-27 20:56:04.682 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:56:04.683 - INFO: Train epoch 27:   Loss: 7029.5859 | r_Loss: 931.2227 | g_Loss: 2305.6804 | l_Loss: 67.7921 | 
+                                                                                 027		7029.5859		-4.5000
+25-09-27 20:58:46.920 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 20:58:46.921 - INFO: Train epoch 28:   Loss: 6427.1872 | r_Loss: 871.6793 | g_Loss: 2006.4865 | l_Loss: 62.3044 | 
+                                                                                 028		6427.1872		-4.5000
+25-09-27 21:01:29.527 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:01:29.527 - INFO: Train epoch 29:   Loss: 6162.9560 | r_Loss: 842.9624 | g_Loss: 1887.0787 | l_Loss: 61.0655 | 
+                                                                                 029		6162.9560		-4.5000
+25-09-27 21:04:11.737 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:04:11.738 - INFO: Train epoch 30:   Loss: 5628.1965 | r_Loss: 757.7477 | g_Loss: 1784.4476 | l_Loss: 55.0103 | 
+                                                                                 030		5628.1965		-4.5000
+25-09-27 21:06:53.809 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:06:53.809 - INFO: Train epoch 31:   Loss: 5443.5110 | r_Loss: 734.0644 | g_Loss: 1720.7053 | l_Loss: 52.4839 | 
+                                                                                 031		5443.5110		-4.5000
+25-09-27 21:09:36.167 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:09:36.168 - INFO: Train epoch 32:   Loss: 89987.9932 | r_Loss: 15850.0575 | g_Loss: 8931.1841 | l_Loss: 1806.5257 | 
+                                                                                 032		89987.9932		-4.5000
+25-09-27 21:12:18.532 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:12:18.533 - INFO: Train epoch 33:   Loss: 16212.0393 | r_Loss: 1769.9128 | g_Loss: 7147.8992 | l_Loss: 214.5762 | 
+                                                                                 033		16212.0393		-4.5000
+25-09-27 21:15:00.861 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:15:00.863 - INFO: Train epoch 34:   Loss: 9808.2449 | r_Loss: 1217.7325 | g_Loss: 3636.7578 | l_Loss: 82.8245 | 
+                                                                                 034		9808.2449		-4.5000
+25-09-27 21:17:43.720 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:17:43.720 - INFO: Train epoch 35:   Loss: 8251.8331 | r_Loss: 1069.8891 | g_Loss: 2841.6819 | l_Loss: 60.7058 | 
+                                                                                 035		8251.8331		-4.5000
+25-09-27 21:20:25.949 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:20:25.949 - INFO: Train epoch 36:   Loss: 7987.0543 | r_Loss: 1056.6528 | g_Loss: 2646.3402 | l_Loss: 57.4499 | 
+                                                                                 036		7987.0543		-4.5000
+25-09-27 21:23:08.062 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:23:08.063 - INFO: Train epoch 37:   Loss: 6645.6102 | r_Loss: 861.6710 | g_Loss: 2290.4326 | l_Loss: 46.8225 | 
+                                                                                 037		6645.6102		-4.5000
+25-09-27 21:25:50.674 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:25:50.675 - INFO: Train epoch 38:   Loss: 6329.6340 | r_Loss: 837.5680 | g_Loss: 2097.3036 | l_Loss: 44.4905 | 
+                                                                                 038		6329.6340		-4.5000
+25-09-27 21:28:33.354 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:28:33.355 - INFO: Train epoch 39:   Loss: 5960.7966 | r_Loss: 783.0892 | g_Loss: 2002.6043 | l_Loss: 42.7464 | 
+                                                                                 039		5960.7966		-4.5000
+25-09-27 21:31:16.003 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:31:16.004 - INFO: Train epoch 40:   Loss: 5700.0171 | r_Loss: 750.4201 | g_Loss: 1906.3979 | l_Loss: 41.5188 | 
+                                                                                 040		5700.0171		-4.5000
+25-09-27 21:33:58.323 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:33:58.324 - INFO: Train epoch 41:   Loss: 5442.7028 | r_Loss: 717.7258 | g_Loss: 1813.9422 | l_Loss: 40.1315 | 
+                                                                                 041		5442.7028		-4.5000
+25-09-27 21:36:40.330 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:36:40.330 - INFO: Train epoch 42:   Loss: 5237.3348 | r_Loss: 693.1298 | g_Loss: 1732.4000 | l_Loss: 39.2860 | 
+                                                                                 042		5237.3348		-4.5000
+25-09-27 21:39:22.454 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:39:22.455 - INFO: Train epoch 43:   Loss: 4989.6923 | r_Loss: 653.1537 | g_Loss: 1686.0820 | l_Loss: 37.8417 | 
+                                                                                 043		4989.6923		-4.5000
+25-09-27 21:42:04.695 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:42:04.695 - INFO: Train epoch 44:   Loss: 4804.1860 | r_Loss: 631.0401 | g_Loss: 1612.8586 | l_Loss: 36.1270 | 
+                                                                                 044		4804.1860		-4.5000
+25-09-27 21:44:47.192 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:44:47.193 - INFO: Train epoch 45:   Loss: 4797.5483 | r_Loss: 625.6655 | g_Loss: 1631.8988 | l_Loss: 37.3220 | 
+                                                                                 045		4797.5483		-4.5000
+25-09-27 21:47:29.180 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:47:29.181 - INFO: Train epoch 46:   Loss: 4479.9303 | r_Loss: 581.2694 | g_Loss: 1539.9661 | l_Loss: 33.6173 | 
+                                                                                 046		4479.9303		-4.5000
+25-09-27 21:50:11.868 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:50:11.869 - INFO: Train epoch 47:   Loss: 4263.4389 | r_Loss: 551.8337 | g_Loss: 1472.5948 | l_Loss: 31.6756 | 
+                                                                                 047		4263.4389		-4.5000
+25-09-27 21:52:54.683 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:52:54.684 - INFO: Train epoch 48:   Loss: 4400.8056 | r_Loss: 576.6073 | g_Loss: 1483.4782 | l_Loss: 34.2907 | 
+                                                                                 048		4400.8056		-4.5000
+25-09-27 21:55:37.064 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:55:37.064 - INFO: Train epoch 49:   Loss: 4021.3261 | r_Loss: 512.2842 | g_Loss: 1430.6932 | l_Loss: 29.2118 | 
+                                                                                 049		4021.3261		-4.5000
+25-09-27 21:59:46.886 - INFO: TEST:   PSNR_S: 39.2114 | PSNR_C: 30.8701 | 
+25-09-27 21:59:46.887 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 21:59:46.887 - INFO: Train epoch 50:   Loss: 3940.4641 | r_Loss: 499.9271 | g_Loss: 1410.8289 | l_Loss: 29.9998 | 
+                                                                                 050		3940.4641		-4.5000
+25-09-27 22:02:29.453 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:02:29.454 - INFO: Train epoch 51:   Loss: 10339.4471 | r_Loss: 1611.9834 | g_Loss: 2168.7994 | l_Loss: 110.7304 | 
+                                                                                 051		10339.4471		-4.5000
+25-09-27 22:05:11.927 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:05:11.928 - INFO: Train epoch 52:   Loss: 7282.7671 | r_Loss: 693.5051 | g_Loss: 3757.5447 | l_Loss: 57.6970 | 
+                                                                                 052		7282.7671		-4.5000
+25-09-27 22:07:54.433 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:07:54.434 - INFO: Train epoch 53:   Loss: 4529.7052 | r_Loss: 525.3842 | g_Loss: 1877.4521 | l_Loss: 25.3322 | 
+                                                                                 053		4529.7052		-4.5000
+25-09-27 22:10:41.452 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:10:41.452 - INFO: Train epoch 54:   Loss: 3995.9682 | r_Loss: 497.7339 | g_Loss: 1485.3276 | l_Loss: 21.9710 | 
+                                                                                 054		3995.9682		-4.5000
+25-09-27 22:13:24.405 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:13:24.405 - INFO: Train epoch 55:   Loss: 3746.1695 | r_Loss: 467.3988 | g_Loss: 1388.1928 | l_Loss: 20.9826 | 
+                                                                                 055		3746.1695		-4.5000
+25-09-27 22:16:06.742 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:16:06.743 - INFO: Train epoch 56:   Loss: 3451.0671 | r_Loss: 433.2062 | g_Loss: 1265.3018 | l_Loss: 19.7343 | 
+                                                                                 056		3451.0671		-4.5000
+25-09-27 22:18:48.884 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:18:48.885 - INFO: Train epoch 57:   Loss: 3333.1203 | r_Loss: 416.7060 | g_Loss: 1230.8677 | l_Loss: 18.7227 | 
+                                                                                 057		3333.1203		-4.5000
+25-09-27 22:21:31.172 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:21:31.173 - INFO: Train epoch 58:   Loss: 28911.7798 | r_Loss: 4757.3852 | g_Loss: 4516.8275 | l_Loss: 608.0249 | 
+                                                                                 058		28911.7798		-4.5000
+25-09-27 22:24:13.611 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:24:13.612 - INFO: Train epoch 59:   Loss: 7681.0005 | r_Loss: 746.8307 | g_Loss: 3899.1818 | l_Loss: 47.6650 | 
+                                                                                 059		7681.0005		-4.5000
+25-09-27 22:26:55.548 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:26:55.549 - INFO: Train epoch 60:   Loss: 5874.7892 | r_Loss: 632.6208 | g_Loss: 2682.1601 | l_Loss: 29.5250 | 
+                                                                                 060		5874.7892		-4.5000
+25-09-27 22:29:38.007 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:29:38.007 - INFO: Train epoch 61:   Loss: 5031.0432 | r_Loss: 561.6336 | g_Loss: 2198.7044 | l_Loss: 24.1706 | 
+                                                                                 061		5031.0432		-4.5000
+25-09-27 22:32:20.475 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:32:20.476 - INFO: Train epoch 62:   Loss: 4620.4828 | r_Loss: 538.8613 | g_Loss: 1904.4350 | l_Loss: 21.7415 | 
+                                                                                 062		4620.4828		-4.5000
+25-09-27 22:35:03.073 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:35:03.073 - INFO: Train epoch 63:   Loss: 3950.6965 | r_Loss: 444.6180 | g_Loss: 1708.1954 | l_Loss: 19.4113 | 
+                                                                                 063		3950.6965		-4.5000
+25-09-27 22:37:45.225 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:37:45.226 - INFO: Train epoch 64:   Loss: 3735.8848 | r_Loss: 438.1433 | g_Loss: 1526.6991 | l_Loss: 18.4691 | 
+                                                                                 064		3735.8848		-4.5000
+25-09-27 22:40:27.446 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:40:27.447 - INFO: Train epoch 65:   Loss: 4492.8399 | r_Loss: 557.8824 | g_Loss: 1682.3751 | l_Loss: 21.0526 | 
+                                                                                 065		4492.8399		-4.5000
+25-09-27 22:43:09.564 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:43:09.565 - INFO: Train epoch 66:   Loss: 3352.7954 | r_Loss: 374.1369 | g_Loss: 1467.3697 | l_Loss: 14.7410 | 
+                                                                                 066		3352.7954		-4.5000
+25-09-27 22:45:51.706 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:45:51.707 - INFO: Train epoch 67:   Loss: 3188.2407 | r_Loss: 376.4272 | g_Loss: 1291.8558 | l_Loss: 14.2491 | 
+                                                                                 067		3188.2407		-4.5000
+25-09-27 22:48:33.564 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:48:33.564 - INFO: Train epoch 68:   Loss: 3015.4695 | r_Loss: 359.8662 | g_Loss: 1202.1863 | l_Loss: 13.9521 | 
+                                                                                 068		3015.4695		-4.5000
+25-09-27 22:51:15.183 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:51:15.184 - INFO: Train epoch 69:   Loss: 2887.8704 | r_Loss: 346.3217 | g_Loss: 1142.6522 | l_Loss: 13.6097 | 
+                                                                                 069		2887.8704		-4.5000
+25-09-27 22:53:57.146 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:53:57.147 - INFO: Train epoch 70:   Loss: 2714.0563 | r_Loss: 324.1093 | g_Loss: 1080.8260 | l_Loss: 12.6836 | 
+                                                                                 070		2714.0563		-4.5000
+25-09-27 22:56:39.404 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:56:39.404 - INFO: Train epoch 71:   Loss: 80514.5401 | r_Loss: 14827.7365 | g_Loss: 5688.1119 | l_Loss: 687.7417 | 
+                                                                                 071		80514.5401		-4.5000
+25-09-27 22:59:24.188 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 22:59:24.188 - INFO: Train epoch 72:   Loss: 10460.0882 | r_Loss: 959.3292 | g_Loss: 5576.8155 | l_Loss: 86.6268 | 
+                                                                                 072		10460.0882		-4.5000
+25-09-27 23:02:06.583 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:02:06.584 - INFO: Train epoch 73:   Loss: 6772.3040 | r_Loss: 717.7309 | g_Loss: 3135.8413 | l_Loss: 47.8083 | 
+                                                                                 073		6772.3040		-4.5000
+25-09-27 23:04:48.778 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:04:48.778 - INFO: Train epoch 74:   Loss: 5566.7457 | r_Loss: 616.2058 | g_Loss: 2448.6594 | l_Loss: 37.0574 | 
+                                                                                 074		5566.7457		-4.5000
+25-09-27 23:07:30.867 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:07:30.868 - INFO: Train epoch 75:   Loss: 5090.0804 | r_Loss: 580.5307 | g_Loss: 2155.6198 | l_Loss: 31.8071 | 
+                                                                                 075		5090.0804		-4.5000
+25-09-27 23:10:12.805 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:10:12.805 - INFO: Train epoch 76:   Loss: 4503.8383 | r_Loss: 516.6881 | g_Loss: 1894.1638 | l_Loss: 26.2342 | 
+                                                                                 076		4503.8383		-4.5000
+25-09-27 23:12:54.878 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:12:54.879 - INFO: Train epoch 77:   Loss: 4369.5658 | r_Loss: 516.9872 | g_Loss: 1761.0049 | l_Loss: 23.6251 | 
+                                                                                 077		4369.5658		-4.5000
+25-09-27 23:15:36.815 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:15:36.815 - INFO: Train epoch 78:   Loss: 4047.9263 | r_Loss: 475.6928 | g_Loss: 1648.7092 | l_Loss: 20.7529 | 
+                                                                                 078		4047.9263		-4.5000
+25-09-27 23:18:18.494 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:18:18.494 - INFO: Train epoch 79:   Loss: 3741.6772 | r_Loss: 435.4763 | g_Loss: 1545.6186 | l_Loss: 18.6773 | 
+                                                                                 079		3741.6772		-4.5000
+25-09-27 23:21:00.681 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:21:00.681 - INFO: Train epoch 80:   Loss: 3701.0757 | r_Loss: 443.7910 | g_Loss: 1464.8863 | l_Loss: 17.2342 | 
+                                                                                 080		3701.0757		-4.5000
+25-09-27 23:23:42.822 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:23:42.823 - INFO: Train epoch 81:   Loss: 3639.2729 | r_Loss: 431.1500 | g_Loss: 1466.4175 | l_Loss: 17.1056 | 
+                                                                                 081		3639.2729		-4.5000
+25-09-27 23:26:24.969 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:26:24.969 - INFO: Train epoch 82:   Loss: 3277.3693 | r_Loss: 390.6329 | g_Loss: 1309.8410 | l_Loss: 14.3640 | 
+                                                                                 082		3277.3693		-4.5000
+25-09-27 23:29:06.984 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:29:06.985 - INFO: Train epoch 83:   Loss: 3185.2315 | r_Loss: 382.2875 | g_Loss: 1260.3314 | l_Loss: 13.4628 | 
+                                                                                 083		3185.2315		-4.5000
+25-09-27 23:31:49.370 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:31:49.371 - INFO: Train epoch 84:   Loss: 3114.1165 | r_Loss: 375.9279 | g_Loss: 1221.6131 | l_Loss: 12.8638 | 
+                                                                                 084		3114.1165		-4.5000
+25-09-27 23:34:31.492 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:34:31.493 - INFO: Train epoch 85:   Loss: 2905.9458 | r_Loss: 348.0792 | g_Loss: 1153.7521 | l_Loss: 11.7978 | 
+                                                                                 085		2905.9458		-4.5000
+25-09-27 23:37:13.587 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:37:13.588 - INFO: Train epoch 86:   Loss: 2903.5523 | r_Loss: 351.0687 | g_Loss: 1136.4534 | l_Loss: 11.7556 | 
+                                                                                 086		2903.5523		-4.5000
+25-09-27 23:39:55.883 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:39:55.884 - INFO: Train epoch 87:   Loss: 2707.8920 | r_Loss: 326.0597 | g_Loss: 1067.1340 | l_Loss: 10.4594 | 
+                                                                                 087		2707.8920		-4.5000
+25-09-27 23:42:37.989 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:42:37.990 - INFO: Train epoch 88:   Loss: 2715.3180 | r_Loss: 330.9375 | g_Loss: 1050.1626 | l_Loss: 10.4676 | 
+                                                                                 088		2715.3180		-4.5000
+25-09-27 23:45:19.964 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:45:19.965 - INFO: Train epoch 89:   Loss: 2518.3181 | r_Loss: 304.7747 | g_Loss: 984.9077 | l_Loss: 9.5369 | 
+                                                                                 089		2518.3181		-4.5000
+25-09-27 23:48:02.214 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:48:02.214 - INFO: Train epoch 90:   Loss: 2472.3737 | r_Loss: 300.2920 | g_Loss: 961.4945 | l_Loss: 9.4194 | 
+                                                                                 090		2472.3737		-4.5000
+25-09-27 23:50:44.637 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:50:44.637 - INFO: Train epoch 91:   Loss: 2785.2577 | r_Loss: 343.0051 | g_Loss: 1057.0540 | l_Loss: 13.1783 | 
+                                                                                 091		2785.2577		-4.5000
+25-09-27 23:53:26.824 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:53:26.825 - INFO: Train epoch 92:   Loss: 2244.0186 | r_Loss: 271.0013 | g_Loss: 880.8630 | l_Loss: 8.1492 | 
+                                                                                 092		2244.0186		-4.5000
+25-09-27 23:56:08.791 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:56:08.792 - INFO: Train epoch 93:   Loss: 9104.4092 | r_Loss: 1268.3162 | g_Loss: 2548.2598 | l_Loss: 214.5683 | 
+                                                                                 093		9104.4092		-4.5000
+25-09-27 23:58:50.783 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-27 23:58:50.784 - INFO: Train epoch 94:   Loss: 3453.7197 | r_Loss: 345.4110 | g_Loss: 1712.8867 | l_Loss: 13.7779 | 
+                                                                                 094		3453.7197		-4.5000
+25-09-28 00:01:32.954 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-28 00:01:32.955 - INFO: Train epoch 95:   Loss: 2820.1546 | r_Loss: 314.2317 | g_Loss: 1238.7026 | l_Loss: 10.2933 | 
+                                                                                 095		2820.1546		-4.5000
+25-09-28 00:04:15.216 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-28 00:04:15.216 - INFO: Train epoch 96:   Loss: 2496.8023 | r_Loss: 289.7088 | g_Loss: 1039.4777 | l_Loss: 8.7805 | 
+                                                                                 096		2496.8023		-4.5000
+25-09-28 00:06:57.202 - INFO: Learning rate: 3.1622776601683795e-05
+25-09-28 00:06:57.203 - INFO: Train epoch 97:   Loss: 2270.0174 | r_Loss: 264.5268 | g_Loss: 939.3132 | l_Loss: 8.0705 | 
+                                                                                 097		2270.0174		-4.5000

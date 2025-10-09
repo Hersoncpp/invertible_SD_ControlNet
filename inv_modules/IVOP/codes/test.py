@@ -60,7 +60,7 @@ for test_loader in test_loaders:
         img_path = data['GT_path'][0]
         img_name = osp.splitext(osp.basename(img_path))[0]
 
-        model.test()
+        model.test(jpg_compress=False)
         # model.predict()
         visuals = model.get_current_visuals()
 
@@ -124,6 +124,7 @@ for test_loader in test_loaders:
         test_results['ssim_lr'].append(ssim_lr)
         
         logger.info('{:20s} - PSNR: {:.6f} dB; SSIM: {:.6f}. LR PSNR: {:.6f} dB; SSIM: {:.6f}.'.format(img_name, psnr, ssim, psnr_lr, ssim_lr))
+        # break
 #        if gt_img.shape[2] == 3:  # RGB image
 #            sr_img_y = bgr2ycbcr(sr_img, only_y=True)
 #            gt_img_y = bgr2ycbcr(gt_img, only_y=True)
