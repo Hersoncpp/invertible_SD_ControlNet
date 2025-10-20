@@ -40,7 +40,80 @@ class InvBlockExp(nn.Module):
 
         return jac / x.shape[0]
 
+class InvBlockTriad(nn.Module):
+    def __init__(self, subnet_constructor, cover_channel_num, secret_channel_num, resolution_channel_num, clamp=1.):
+        super(InvBlockExp, self).__init__()
 
+        self.cover_channel_num = cover_channel_num
+        self.secret_channel_num = secret_channel_num
+        self.resolution_channel_num = resolution_channel_num
+
+        self.clamp = clamp
+        
+        # cs, cr, rs
+        self.F = {"sc": subnet_constructor(secret_channel_num, cover_channel_num),
+                  "cr": subnet_constructor(cover_channel_num, resolution_channel_num),
+                  "rs": subnet_constructor(resolution_channel_num, secret_channel_num)}
+        
+        self.G = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
+                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
+                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
+        
+        self.H = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
+                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
+                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
+        
+    def branch_forward(self, x1, x2, net_type, net_id, rev=False):
+        if net_type == 'F':
+            net = self.F[net_id]
+            if not rev:
+                y2 = x2 + net(x1)
+            else:
+                y2 = x2 - net(x1) 
+        elif net_type == 'G':
+            net = self.G[net_id]
+            if not rev:
+                y2 = x2 + net(x1)
+            else:
+                y2 = x2 - net(x1)
+        elif net_type == 'H':
+            net = self.H[net_id]
+            if not rev:
+                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
+                y2 = x2.mul(torch.exp(s))
+            else:
+                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
+                y2 = x2.div(torch.exp(s))
+                
+        return x1, y2
+
+    def forward(self, c, s, r, rev=False):
+
+        if not rev:
+            c, r = self.branch_forward(c, r, 'F', 'cr', rev)
+            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
+            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
+            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
+            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
+            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
+            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
+            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
+            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
+        else:
+            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
+            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
+            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
+            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
+            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
+            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
+            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
+            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
+            c, r = self.branch_forward(c, r, 'F', 'cr', rev)            
+
+        return c, s, r
+
+    def jacobian(self, x, rev=False):
+        return 1
 
 class InvRescaleNet(nn.Module):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):

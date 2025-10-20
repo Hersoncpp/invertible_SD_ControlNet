@@ -27,6 +27,8 @@ class IRNpModel(BaseModel):
             self.rank = -1  # non dist training
         train_opt = opt['train']
         test_opt = opt['test']
+        self.tmp_file_name = opt['name']
+        print(f"Tmp file saved at {self.tmp_file_name}.")
         self.train_opt = train_opt
         self.test_opt = test_opt
         self.prompt = None
@@ -344,7 +346,7 @@ class IRNpModel(BaseModel):
                 # print('before saving forw_L min max:', self.forw_L.min().item(), self.forw_L.max().item())
                 # print(self.forw_L)
                 # save forw_L for using cv2.imwrite
-                save_path_tmp = 'tmp_forw_L.jpg'
+                save_path_tmp = f'tmp_forw_L_{self.tmp_file_name}.jpg'
                 tmp_forw_L_img = util.tensor2img(self.forw_L)
                 # util.save_img(tmp_forw_L_img, save_path_tmp, quality=95)
                 util.save_img(tmp_forw_L_img, save_path_tmp)

@@ -179,7 +179,7 @@ def main():
 
             # validation
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
-                avg_psnr = 0.0
+                avg_psnr = avg_psnr_diff = 0.0
                 avg_psnr_l = 0.0
                 idx = 0
                 for _, val_data in tqdm(enumerate(val_loader)):
@@ -196,7 +196,7 @@ def main():
                     sr_img = util.tensor2img(visuals['SR'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
                     if visuals.get('SR_compressed', None) is not None:
-                        sr_img_compressed = util.tensor2img(visuals['SR_compressed'])
+                        sr_img_diff = util.tensor2img(visuals['SR_compressed'])
                         
                     lr_img = util.tensor2img(visuals['LR'])
 
@@ -210,8 +210,8 @@ def main():
                     # Save SR compressed images for reference
                     if visuals.get('SR_compressed', None) is not None:
                         save_img_path_compressed = os.path.join(img_dir,
-                                                     '{:s}_compressed_{:d}.jpg'.format(img_name, current_step))
-                        util.save_img(sr_img_compressed, save_img_path_compressed)
+                                                     '{:s}_diff_{:d}.jpg'.format(img_name, current_step))
+                        util.save_img(sr_img_diff, save_img_path_compressed)
                     
                     # Save LR images
                     save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.jpg'.format(img_name, current_step))
@@ -228,27 +228,31 @@ def main():
                     crop_size = opt['scale']
                     gt_img = gt_img / 255.
                     sr_img = sr_img / 255.
+                    sr_img_diff = sr_img_diff / 255. if visuals.get('SR_compressed', None) is not None else None
                     gtl_img = gtl_img / 255.
                     lr_img = lr_img / 255.
                     # print("crop_size:")
                     # print(crop_size)
                     # print(sr_img.shape, gt_img.shape)
                     cropped_sr_img = sr_img[crop_size:-crop_size, crop_size:-crop_size, :]
+                    cropped_sr_img_diff = sr_img_diff[crop_size:-crop_size, crop_size:-crop_size, :] if sr_img_diff is not None else None
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_lr_img = lr_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_gtl_img = gtl_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     # print(cropped_sr_img.shape, cropped_gt_img.shape)
                     avg_psnr += util.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
+                    avg_psnr_diff += util.calculate_psnr(cropped_sr_img_diff * 255, cropped_gt_img * 255)
                     avg_psnr_l += util.calculate_psnr(cropped_lr_img * 255, cropped_gtl_img * 255)
 
                 avg_psnr = avg_psnr / idx
+                avg_psnr_diff = avg_psnr_diff / idx
                 avg_psnr_l = avg_psnr_l / idx
 
                 # log
-                logger.info('# Validation # PSNR_SOURCE: {:.4e} # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_l))
+                logger.info('# Validation # PSNR_SOURCE: {:.4e}  # PSNR_SOURCE_DIFF: {:.4e}  # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_diff, avg_psnr_l))
                 logger_val = logging.getLogger('val')  # validation logger
-                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}.'.format(
-                    epoch, current_step, avg_psnr))
+                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}, {:.4e}.'.format(
+                    epoch, current_step, avg_psnr, avg_psnr_diff))
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:
                     tb_logger.add_scalar('psnr', avg_psnr, current_step)
