@@ -145,7 +145,7 @@ def main():
     else:
         current_step = 0
         start_epoch = 0
-
+    
     #### training
     from tqdm import tqdm
     logger.info('Start training from epoch: {:d}, iter: {:d}'.format(start_epoch, current_step))
@@ -158,7 +158,7 @@ def main():
                 break
             #### training
             model.feed_data(train_data, identity=opt['identity'])
-            model.optimize_parameters(current_step, compress_flag=opt['compress_flag'])
+            model.optimize_parameters(current_step, compress_aware=opt['compress_flag'])
 
             #### update learning rate
             model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
@@ -195,7 +195,9 @@ def main():
                     visuals = model.get_current_visuals()
                     sr_img = util.tensor2img(visuals['SR'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
-
+                    if visuals.get('SR_compressed', None) is not None:
+                        sr_img_compressed = util.tensor2img(visuals['SR_compressed'])
+                        
                     lr_img = util.tensor2img(visuals['LR'])
 
                     gtl_img = util.tensor2img(visuals['LR_ref'])
@@ -205,6 +207,12 @@ def main():
                                                  '{:s}_{:d}.jpg'.format(img_name, current_step))
                     util.save_img(sr_img, save_img_path)
 
+                    # Save SR compressed images for reference
+                    if visuals.get('SR_compressed', None) is not None:
+                        save_img_path_compressed = os.path.join(img_dir,
+                                                     '{:s}_compressed_{:d}.jpg'.format(img_name, current_step))
+                        util.save_img(sr_img_compressed, save_img_path_compressed)
+                    
                     # Save LR images
                     save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.jpg'.format(img_name, current_step))
                     util.save_img(lr_img, save_img_path_L)

@@ -10,6 +10,7 @@ from .base_model import BaseModel
 from models.modules.loss import GANLoss, ReconstructionLoss, SSIMLoss
 from models.modules.Quantization import Quantization
 from models.modules.Jpeg_Compress import Jpeg_Compress_Layer
+from models.modules.DiffJPEG.DiffJPEG import DiffJPEG
 import lpips
 import utils.util as util
 import cv2
@@ -34,13 +35,20 @@ class IRNpModel(BaseModel):
         if opt['dist']:
             self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
         else:
+            print(f"Using {torch.cuda.device_count()} GPUs")
             self.netG = DataParallel(self.netG)
         # print network
         self.print_network()
         self.load()
 
         self.Quantization = Quantization()
-        self.Compression = Jpeg_Compress_Layer()
+        if opt['compress_mode'] == 'diffjpeg':
+            print("Using diffjpeg compression")
+            r = opt['datasets']['train']['resolution']
+            self.Compression = DiffJPEG(r, r, quality=95).to(self.device)
+        else:
+            print("Using regular jpeg compression")
+            self.Compression = Jpeg_Compress_Layer()
 
         if self.is_train:
             # self.netD = networks.define_D(opt).to(self.device)
@@ -200,7 +208,7 @@ class IRNpModel(BaseModel):
         return l_g_fea
         
 
-    def optimize_parameters(self, step, compress_flag = False):
+    def optimize_parameters(self, step, compress_aware = False):
         # G
         # for p in self.netD.parameters():
         #     p.requires_grad = False
@@ -218,21 +226,30 @@ class IRNpModel(BaseModel):
         ########################
         # Quantization before feeding into the invertible model
         LR = self.Quantization(self.output[:, :3, :, :])
-
-        if compress_flag:
-            print('using jpeg compression')
-            LR = self.Compression(LR).to(self.device)
         
+        if compress_aware:
+            print('integrating jpeg compression')
+            LR_compressed = self.Compression(LR).to(self.device)
+            
         ########################
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        y_ = torch.cat((LR, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+        g_batch = self.gaussian_batch(zshape)
+        y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
+        y1 = torch.cat((LR_compressed, gaussian_scale * g_batch), dim=1) if compress_aware else None
 
-        self.fake_H = self.netG(x=y_, rev=True)
+        self.fake_H = self.netG(x=y0, rev=True)
+        self.fake_H_compressed = self.netG(x=y1, rev=True) if compress_aware else None
 
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
             l_forw= self.loss_forward(self.output, self.ref_L.detach(), self.output[:, 3:, :, :])
             # l_back_rec, l_back_fea, l_back_gan = self.loss_backward(self.real_H, self.fake_H)
             l_back= self.loss_backward(self.real_H, self.fake_H)
+            if compress_aware:
+                cw = 1. # jpeg weight
+                rw = 1. - cw # png weight
+                l_back_compressed= self.loss_backward(self.real_H, self.fake_H_compressed)
+                l_back = {k: l_back.get(k, .0) * rw + l_back_compressed.get(k, .0) * cw for k in set(l_back)}
+            
 
             # l_forw_fit + l_back_rec + l_forw_ce + l_forw_lpips + l_back_lpips
             loss += l_forw.get('l_forw_fit', 0.0) + l_back.get('l_back_rec', 0.0) + l_forw.get('l_forw_ce', 0.0) + l_forw.get('l_forw_lpips', 0.0) + l_back.get('l_back_lpips', 0.0)
@@ -343,10 +360,16 @@ class IRNpModel(BaseModel):
                 tmp_forw_L_img = torch.from_numpy(np.transpose(tmp_forw_L_img, (2, 0, 1))).float().unsqueeze(0).to(self.device)
                 # print('after jpg compression forw_L min max:', tmp_forw_L_img.min().item(), tmp_forw_L_img.max().item())
                 # print(tmp_forw_L_img)
-                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+                g_batch = self.gaussian_batch(zshape)
+                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * g_batch), dim=1)
+                
+                y_diffjpeg_forw = self.Compression(self.forw_L)
+                y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, gaussian_scale * g_batch), dim=1)
             else:
                 y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+            
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
+            self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :] if compress_flag else None
 
         self.netG.train()
 
@@ -380,6 +403,7 @@ class IRNpModel(BaseModel):
         out_dict['SR'] = self.fake_H.detach()[0].float().cpu()
         out_dict['LR'] = self.forw_L.detach()[0].float().cpu()
         out_dict['GT'] = self.real_H.detach()[0].float().cpu()
+        out_dict['SR_compressed'] = self.fake_H_compressed.detach()[0].float().cpu() if self.fake_H_compressed is not None else None
         return out_dict
 
     def print_network(self):

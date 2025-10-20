@@ -17,6 +17,7 @@ def define_G(opt):
     opt_net = opt['network_G']
     which_model = opt_net['which_model_G']
     subnet_type = which_model['subnet_type']
+    print("subnet_type:", subnet_type)
     non_inv_block_model_name = which_model.get('non_inv_block', None)
     if opt_net['init']:
         init = opt_net['init']
@@ -72,8 +73,13 @@ def define_G(opt):
 
     else:
         non_inv_block = None
-    netG = InvRescaleNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block)
-
+    print(opt_net['branch_type'])
+    if opt_net['branch_type'] == 'dual_branch':
+        print("### Using InvRescaleNetD ###")
+        netG = InvRescaleNetD(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block)
+    else:
+        print("### Using InvRescaleNet ###")
+        netG = InvRescaleNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block)
     return netG
 
 

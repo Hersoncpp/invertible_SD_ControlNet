@@ -12,7 +12,7 @@ distortion: sr
 scale: 1
 gpu_ids: [3]
 identity: True
-compress_flag: True
+compress_flag: False
 # suffix: "predict"
 #### datasets
  

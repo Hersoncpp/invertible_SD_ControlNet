@@ -64,10 +64,10 @@ for test_loader in test_loaders:
         # model.predict()
         visuals = model.get_current_visuals()
 
-        sr_img = util.tensor2img(visuals['SR'])  # uint8
-        srgt_img = util.tensor2img(visuals['GT'])  # uint8
-        lr_img = util.tensor2img(visuals['LR'])  # uint8
-        lrgt_img = util.tensor2img(visuals['LR_ref'])  # uint8
+        sr_img = util.tensor2img(visuals['SR'])  # uint8 recovered ori image
+        srgt_img = util.tensor2img(visuals['GT'])  # uint8 gt ori image
+        lr_img = util.tensor2img(visuals['LR'])  # uint8 styled image with hidden
+        lrgt_img = util.tensor2img(visuals['LR_ref'])  # uint8 gt styled image
     #print (time.time() - start)
         # save images
         suffix = opt['suffix']
