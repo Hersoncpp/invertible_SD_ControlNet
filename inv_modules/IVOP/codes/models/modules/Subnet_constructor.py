@@ -90,6 +90,7 @@ class AttentionBlock(nn.Module):
         self.conv1 = nn.Conv2d(channel_in, gc, 3, 1, 1, bias=bias)
         self.conv2 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
         self.conv3 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
+        self.conv4 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
         self.ca = ChannelAttention(gc, bias)
         self.sa = SpatialAttention(bias=bias)
         self.conv_out = nn.Conv2d(gc, channel_out, 3, 1, 1, bias=bias)
@@ -102,11 +103,12 @@ class AttentionBlock(nn.Module):
 
     def forward(self, x):
         x1 = self.lrelu(self.conv1(x))
-        x2 = self.lrelu(self.conv2(x1))
+        x2 = self.lrelu(self.conv2(x1) + x1)
         x3 = self.lrelu(self.conv3(x2) + x1)
+        x4 = self.lrelu(self.conv4(x3) + x1)
         
-        x3 = x3 * self.ca(x3) * self.sa(x3) + x3
-        out = self.conv_out(x3)
+        x4 = x4 * self.ca(x4) * self.sa(x4)
+        out = self.conv_out(x4)
         return out
         
 

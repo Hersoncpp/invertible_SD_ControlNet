@@ -14,11 +14,14 @@ def extract_from_tensor_batch(tensor_batch):
 class Jpeg_Compress(torch.autograd.Function):
     
     @staticmethod
-    def forward(ctx, input, quality=95):
+    def forward(ctx, input, tmp_file_name, quality=95):
+        ctx.save_for_backward(input)
+        ctx.tmp_file_name = tmp_file_name
+        ctx.quality = quality
+
         steg_img = input
-        # print('shape of steg_img before jpeg compress:', steg_img.shape)
-        tmp_step_img_path = "/home/yukai/disk1/invertible_SD_ControlNet/inv_modules/IVOP/experiments/tmp.jpg"
-        # 存储为jpg格式
+        tmp_step_img_path = f"/home/yukai/disk1/invertible_SD_ControlNet/inv_modules/IVOP/experiments/{tmp_file_name}.jpg"
+
         def transform_steg_img(steg_img):
             return torch.clamp(steg_img, 0, 1)
 
@@ -36,17 +39,21 @@ class Jpeg_Compress(torch.autograd.Function):
             steg_img_jpg = torch.from_numpy(steg_img_jpg).unsqueeze(0).float().cuda()
             compressed_tensors.append(steg_img_jpg)
         compressed_steg_img = torch.cat(compressed_tensors, dim=0)
-        # print('shape of steg_img after jpeg compress:', compressed_steg_img.shape)
         return compressed_steg_img
+
     @staticmethod
     def backward(ctx, grad_output):
-        # gradient pass through as identity function
-        return grad_output
+        
+        grad_input = grad_output
+        
+        grad_tmp_file_name = None
+        grad_quality = None
+        return grad_input, grad_tmp_file_name, grad_quality
     
-
 class Jpeg_Compress_Layer(nn.Module):
-    def __init__(self):
+    def __init__(self, tmp_file_name):
         super(Jpeg_Compress_Layer, self).__init__()
+        self.tmp_file_name = tmp_file_name
 
     def forward(self, input):
-        return Jpeg_Compress.apply(input)
+        return Jpeg_Compress.apply(input, self.tmp_file_name)

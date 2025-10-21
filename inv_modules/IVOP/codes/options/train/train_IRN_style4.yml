@@ -5,12 +5,12 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_10.20.1
+name: style_inv_10.21.4
 use_tb_logger: False
 model: IRN+
 distortion: sr
 scale: 1
-gpu_ids: [2, 3, 4, 5]
+gpu_ids: [5, 2, 3, 7]
 identity: True
 compress_flag: True
 compress_mode: diffjpeg
@@ -53,13 +53,13 @@ datasets:
 
 network_G:
   which_model_G:
-      # subnet_type: CBAM
-      subnet_type: ConvNet
+      subnet_type: CBAM
+      # subnet_type: ConvNet
       non_inv_block: "Identity" #"control_v11e_sd15_ip2p-finetuned"
   in_nc: 3
   out_nc: 3
   branch_type: single_branch
-  block_num: [8, 8] #8
+  block_num: [4, 16] #8
   scale: 1
   init: xavier
 
@@ -87,6 +87,8 @@ train:
   lr_scheme: MultiStepLR
   lr_steps: [10000, 20000, 30000, 40000]
   lr_gamma: 0.5
+  loss_cw: 10.0
+  loss_rw: 0.0
 
   pixel_criterion_forw: l2
   pixel_criterion_back: l2
