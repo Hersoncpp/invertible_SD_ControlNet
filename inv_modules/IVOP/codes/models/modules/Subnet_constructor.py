@@ -85,7 +85,7 @@ class SpatialAttention(nn.Module):
         return self.sigmoid(out)
 
 class AttentionBlock(nn.Module):
-    def __init__(self, channel_in, channel_out, init='xavier', gc=20, bias=True):
+    def __init__(self, channel_in, channel_out, init='xavier', gc=24, bias=True):
         super(AttentionBlock, self).__init__()
         self.conv1 = nn.Conv2d(channel_in, gc, 3, 1, 1, bias=bias)
         self.conv2 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
@@ -113,21 +113,12 @@ class AttentionBlock(nn.Module):
         
 
 def subnet(net_structure, init='xavier'):
-    def constructor(channel_in, channel_out):
+    def constructor(channel_in, channel_out, gc=25, bias=True):
         if net_structure == 'DBNet':
-            if init == 'xavier':
-                return DenseBlock(channel_in, channel_out, init)
-            else:
-                return DenseBlock(channel_in, channel_out)
+            return DenseBlock(channel_in, channel_out, init, gc, bias)
         if net_structure == 'ConvNet':
-            if init == 'xavier':
-                return ConvBlock(channel_in, channel_out, init)
-            else:
-                return ConvBlock(channel_in, channel_out)
+            return ConvBlock(channel_in, channel_out, init, gc, bias)
         if net_structure == 'CBAM':
-            if init == 'xavier':
-                return AttentionBlock(channel_in, channel_out, init)
-            else:
-                return AttentionBlock(channel_in, channel_out)
+            return AttentionBlock(channel_in, channel_out, init, gc, bias)
 
     return constructor

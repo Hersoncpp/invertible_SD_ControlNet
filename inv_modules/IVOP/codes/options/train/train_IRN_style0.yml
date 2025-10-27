@@ -5,12 +5,12 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_10.21.4
+name: style_inv_10.27.0
 use_tb_logger: False
-model: IRN+
+model: IRNca
 distortion: sr
 scale: 1
-gpu_ids: [0, 1, 3, 4]
+gpu_ids: [0, 1, 2, 3]
 identity: True
 compress_flag: True
 compress_mode: diffjpeg
@@ -59,7 +59,7 @@ network_G:
   in_nc: 3
   out_nc: 3
   branch_type: single_branch
-  block_num: [0, 16] #8
+  block_num: [6, 16] #8
   scale: 1
   init: xavier
 
@@ -79,19 +79,24 @@ path:
 
 train:
   lr_G: !!float 2e-4
+  lr_AR: !!float 2e-4
   beta1: 0.9
   beta2: 0.999
+  beta1_AR: 0.9
+  beta2_AR: 0.999
   niter: 50000
   warmup_iter: -1  # no warm up
 
   lr_scheme: MultiStepLR
   lr_steps: [10000, 20000, 30000, 40000]
   lr_gamma: 0.5
-  loss_cw: 10.0
+  loss_cw: 2.0
   loss_rw: 0.0
 
   pixel_criterion_forw: l2
   pixel_criterion_back: l2
+  pixel_criterion_recover: l2
+
   lpips_net: "vgg"
   manual_seed: 12345
 
@@ -100,12 +105,14 @@ train:
   lambda_fit_forw: 1.
   lambda_rec_back: 4.
   lambda_ce_forw: 0.
+  lambda_rec: 1.
   lambda_lpips_forw: 1.
   lambda_lpips_back: 0.
   lambda_ssim_forw: 0.
   lambda_ssim_back: 1.
   
   weight_decay_G: !!float 1e-5
+  weight_decay_AR: !!float 1e-5
   gradient_clipping: 10
 
 

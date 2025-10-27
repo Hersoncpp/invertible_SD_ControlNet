@@ -41,7 +41,7 @@ class InvBlockExp(nn.Module):
         return jac / x.shape[0]
 
 class InvBlockTriad(nn.Module):
-    def __init__(self, subnet_constructor, cover_channel_num, secret_channel_num, resolution_channel_num, clamp=1.):
+    def __init__(self, subnet_constructor, cover_channel_num, secret_channel_num, resolution_channel_num, sequence=None, clamp=1.):
         super(InvBlockExp, self).__init__()
 
         self.cover_channel_num = cover_channel_num
@@ -50,34 +50,42 @@ class InvBlockTriad(nn.Module):
 
         self.clamp = clamp
         
-        # cs, cr, rs
-        self.F = {"sc": subnet_constructor(secret_channel_num, cover_channel_num),
-                  "cr": subnet_constructor(cover_channel_num, resolution_channel_num),
-                  "rs": subnet_constructor(resolution_channel_num, secret_channel_num)}
+        if sequence is None:
+            self.sequence = [['F', 'cr'], ['F', 'rs'], ['F', 'sc'],
+                             ['H', 'cs'], ['H', 'sr'], ['H', 'rc'],
+                             ['G', 'cs'], ['G', 'sr'], ['G', 'rc']]
+        else:
+            self.sequence = sequence
         
-        self.G = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
-                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
-                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
-        
-        self.H = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
-                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
-                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
-        
-    def branch_forward(self, x1, x2, net_type, net_id, rev=False):
-        if net_type == 'F':
-            net = self.F[net_id]
-            if not rev:
-                y2 = x2 + net(x1)
-            else:
-                y2 = x2 - net(x1) 
-        elif net_type == 'G':
-            net = self.G[net_id]
+        self.subnets = []
+        for subnet_opt in self.sequence:
+            net_type, net_dir = subnet_opt
+            net_from, net_to = net_dir[0], net_dir[1]
+            
+            if net_type == 'F':
+                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
+            elif net_type == 'G':
+                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
+            elif net_type == 'H':
+                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
+                
+            self.subnets.append((net_type, self.which_pass(net_from)[0], self.which_pass(net_to)[0], subnet))
+    
+    def which_pass(self, pass_id):
+        if pass_id == 'c':
+            return 0, self.cover_channel_num
+        elif pass_id == 's':
+            return 1, self.secret_channel_num
+        elif pass_id == 'r':
+            return 2, self.resolution_channel_num
+    
+    def branch_forward(self, x1, x2, net_type, net, rev=False):
+        if net_type == 'F' or net_type == 'G':
             if not rev:
                 y2 = x2 + net(x1)
             else:
                 y2 = x2 - net(x1)
         elif net_type == 'H':
-            net = self.H[net_id]
             if not rev:
                 s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
                 y2 = x2.mul(torch.exp(s))
@@ -88,32 +96,21 @@ class InvBlockTriad(nn.Module):
         return x1, y2
 
     def forward(self, c, s, r, rev=False):
-
+        passes = [c, s, r]
+        
         if not rev:
-            c, r = self.branch_forward(c, r, 'F', 'cr', rev)
-            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
-            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
-            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
-            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
-            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
-            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
-            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
-            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
+            for subnet in self.subnets:
+                net_type, from_id, to_id, net = subnet
+                passes[from_id], passes[to_id] = self.branch_forward(passes[from_id], passes[to_id], net_type, net, rev)
         else:
-            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
-            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
-            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
-            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
-            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
-            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
-            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
-            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
-            c, r = self.branch_forward(c, r, 'F', 'cr', rev)            
+            for subnet in reversed(self.subnets):
+                net_type, from_id, to_id, net = subnet
+                passes[from_id], passes[to_id] = self.branch_forward(passes[from_id], passes[to_id], net_type, subnet, rev)
 
-        return c, s, r
+        return passes[0], passes[1], passes[2]
 
-    def jacobian(self, x, rev=False):
-        return 1
+    def jacobian(self, x, rev=False): # not implemented
+        return 0
 
 class InvRescaleNet(nn.Module):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
@@ -417,17 +414,27 @@ class InvRescaleNetD(nn.Module):
         else:
             return out_
 
-class InvNetJPEGAware(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=8, down_num=2, non_inv_block = None):
-        super(InvNetJPEGAware, self).__init__()
-        operations = []
-      
-        # without SR
-        for _ in range(block_num[0]):
-            b = InvBlockTriad(subnet_constructor, 3, 3, 3)
-            operations.append(b)
+class InvNetCorruptionAware(nn.Module):
+    def __init__(self, 
+                 channel_in=3, 
+                 channel_out=3, 
+                 subnet_constructor=None, 
+                 block_num={}, 
+                 down_num=2, 
+                 non_inv_block = None):
+        
+        super(InvNetCorruptionAware, self).__init__()
+        
+        inv_blocks = []
+        for _ in range(block_num['inv_blocks']):
+            b = InvBlockTriad(subnet_constructor, 3, 3, 1)
+            inv_blocks.append(b)
 
-        self.operations = nn.ModuleList(operations)
+        self.inv_blocks = nn.ModuleList(inv_blocks)
+        
+        self.get_uninvBranch(channel_in, channel_out, subnet_constructor, block_num, down_num, non_inv_block)
+
+    def get_uninvBranch(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
         print("#### non_inv_block:", non_inv_block)
         if non_inv_block is None:
             bBranch = [nn.Conv2d(channel_in, channel_in*4, kernel_size=5, stride=1, padding=2, bias=True), nn.LeakyReLU(0.2, inplace=True),
@@ -498,38 +505,29 @@ class InvNetJPEGAware(nn.Module):
 
             self.uninvBranch = process
 
-        
-
-    def forward(self, x, r, rev=False, cal_jacobian=False, prompt=None, uninv_input=None):
+    def forward(self, s, r, c=None, rev=False, cal_jacobian=False, prompt=None, uninv_input=None):
         # x is tensor of shape [B, C, H, W]
         # if rev == True:
         #     print("in reverse, x shape:", x.shape)
-        out = x
 
-        if not rev:
-                    
+        if not rev:  
             if uninv_input is not None:
-                y = self.uninvBranch(uninv_input)
+                c = self.uninvBranch(uninv_input)
             elif type(self.uninvBranch) == nn.Sequential:
-                y = self.uninvBranch(x)
+                c = self.uninvBranch(s)
             else:
                 input_dict = self.uninvInput.copy()
-                input_dict['input_image'] = x
+                input_dict['input_image'] = s
                 input_dict['prompt'] = prompt
-                y = self.uninvBranch(**input_dict)
-
-            # print('out shape:', out.shape, 'out_uninv shape:', out_uninv.shape)
+                c = self.uninvBranch(**input_dict)
             
-            for op in self.operations:
-                x, y, r = op.forward(x, y, r, rev)  
-            return x, y, r  
+            for op in self.inv_blocks:
+                c, s, r = op.forward(c, s, r, rev)  
+            return s, c, r
              
         else:
-            for op in reversed(self.operations_final):
-                out = op.forward(out, rev)
+            
+            for op in reversed(self.inv_blocks):
+                c, s, r = op.forward(c, s, r, rev) 
         
-            out_ = out[:,:3,:,:]
-            for op in reversed(self.operations):
-                out_ = op.forward(out_, rev)
-        
-        return out_
+        return s, c, r

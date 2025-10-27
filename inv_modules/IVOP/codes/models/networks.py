@@ -3,6 +3,7 @@ import logging
 import models.modules.discriminator_vgg_arch as SRGAN_arch
 from models.modules.Inv_arch import *
 from models.modules.Subnet_constructor import subnet
+from models.modules.decompresser import Decompresser
 import sys
 sys.path.append('/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly')
 from cldm.model import create_model, load_state_dict
@@ -108,3 +109,8 @@ def define_F(opt, use_bn=False):
                                           use_input_norm=True, device=device)
     netF.eval()  # No need to train
     return netF
+
+### Artifact Remover Network
+def define_AR(opt):
+    netAR = Decompresser(channel=3, block_type='CBAM', init='xavier')
+    return netAR
