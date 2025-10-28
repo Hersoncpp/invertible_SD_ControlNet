@@ -52,7 +52,7 @@ class IRNcaModel(BaseModel):
         self.load()
 
         self.Quantization = Quantization()
-        if opt['compress_mode'] == 'diffjpeg':
+        if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
             self.compress_mode = 'diffjpeg'
             print("Using diffjpeg compression")
             r = opt['datasets']['train']['resolution']
@@ -104,7 +104,7 @@ class IRNcaModel(BaseModel):
             # optimizers
             # G
             wd_G = train_opt['weight_decay_G'] if train_opt['weight_decay_G'] else 0
-            
+
             optim_params = []
             for k, v in self.netG.named_parameters():
                 if v.requires_grad:
@@ -189,9 +189,10 @@ class IRNcaModel(BaseModel):
             losses['l_forw_ssim'] = l_forw_ssim
 
         return losses
+    
     def loss_recover(self, y, y_r):
         losses = {}
-        losses['l_rec'] = self.train_opt['lambda_rec'] * self.Reconstruction_recover(y, y_r)
+        losses['l_rec_rec'] = self.train_opt['lambda_rec_rec'] * self.Reconstruction_recover(y, y_r)
         return losses
         
     def loss_backward(self, x, x_samples):
@@ -249,7 +250,7 @@ class IRNcaModel(BaseModel):
 
         loss = 0
         z = self.output[:, 3:, :, :]
-        LR = self.output[:, 3:, :, :]
+        LR = self.output[:, :3, :, :]
 
         # Quantization
         LR_quantize = self.Quantization(LR)
@@ -259,6 +260,7 @@ class IRNcaModel(BaseModel):
             LR_compressed = self.Compression(LR_quantize).to(self.device)
         
         LR_recovered = self.netAR(LR_compressed) if compress_aware else self.netAR(LR_quantize)
+        # LR_recovered = LR_compressed if compress_aware else LR_quantize
         
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
         g_batch = self.gaussian_batch(LR.shape)
@@ -271,8 +273,7 @@ class IRNcaModel(BaseModel):
         
         
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
-            l_forw = self.loss_forward(self.output, self.ref_L.detach(), LR)
-            # l_back_rec, l_back_fea, l_back_gan = self.loss_backward(self.real_H, self.fake_H)
+            l_forw = self.loss_forward(self.output, self.ref_L.detach(), z)
             l_recover = self.loss_recover(LR, LR_recovered)
             l_back = self.loss_backward(self.real_H, self.fake_H)
             if compress_aware:
@@ -281,14 +282,12 @@ class IRNcaModel(BaseModel):
                 l_back_compressed = self.loss_backward(self.real_H, self.fake_H_compressed)
                 l_back = {k: l_back.get(k, .0) * rw + l_back_compressed.get(k, .0) * cw for k in set(l_back)}
             
-
-            # l_forw_fit + l_back_rec + l_forw_ce + l_forw_lpips + l_back_lpips
             loss += l_forw.get('l_forw_fit', 0.0) \
                   + l_back.get('l_back_rec', 0.0) \
                   + l_forw.get('l_forw_ce', 0.0) \
                   + l_forw.get('l_forw_lpips', 0.0) \
                   + l_back.get('l_back_lpips', 0.0) \
-                  + l_recover.get('l_rec', 0.0)
+                  + l_recover.get('l_rec_rec', 0.0)
             
 
             loss.backward()
@@ -374,34 +373,29 @@ class IRNcaModel(BaseModel):
                 self.forw_L = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input)[:, :3, :, :]
             else:
                 self.forw_L = self.netG(x=self.input, uninv_input=self.uninv_input)[:, :3, :, :]
-            self.forw_L = self.Quantization(self.forw_L)
+            
+            LR = self.forw_L
+            RL_quantized = self.Quantization(LR)
+            
             if compress_flag:
-                # print('using jpg compression')
-                # print('before saving forw_L min max:', self.forw_L.min().item(), self.forw_L.max().item())
-                # print(self.forw_L)
-                # save forw_L for using cv2.imwrite
+                
                 save_path_tmp = f'tmp_forw_L_{self.tmp_file_name}.jpg'
-                tmp_forw_L_img = util.tensor2img(self.forw_L)
-                # util.save_img(tmp_forw_L_img, save_path_tmp, quality=95)
+                tmp_forw_L_img = util.tensor2img(RL_quantized)
                 util.save_img(tmp_forw_L_img, save_path_tmp)
-                # Reread the tmp_forw_L_img:
-                # print("intermediate tmp_forw_L_img before saving:")
-                # print(tmp_forw_L_img)
                 tmp_forw_L_img = cv2.imread(save_path_tmp)
-                # print('intermediate tmp_forw_L_img after saving and reading:')
-                # print(tmp_forw_L_img)
-                # BGR to RGB
                 tmp_forw_L_img = cv2.cvtColor(tmp_forw_L_img, cv2.COLOR_BGR2RGB)
                 tmp_forw_L_img = tmp_forw_L_img.astype('float32') / 255.0
                 tmp_forw_L_img = torch.from_numpy(np.transpose(tmp_forw_L_img, (2, 0, 1))).float().unsqueeze(0).to(self.device)
-                # print('after jpg compression forw_L min max:', tmp_forw_L_img.min().item(), tmp_forw_L_img.max().item())
-                # print(tmp_forw_L_img)
-                tmp_forw_L_img = self.netAR(tmp_forw_L_img)
+
+                forw_L_recovered = self.netAR(tmp_forw_L_img)
+                # forw_L_recovered = tmp_forw_L_img
+                self.forw_L_recovered = forw_L_recovered
+                
                 g_batch = self.gaussian_batch(zshape)
-                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * g_batch), dim=1)
+                y_forw = torch.cat((forw_L_recovered, gaussian_scale * g_batch), dim=1)
                 
                 if self.compress_mode == 'diffjpeg':
-                    y_diffjpeg_forw = self.Compression(self.forw_L)
+                    y_diffjpeg_forw = self.Compression(RL_quantized)
                     y_diffjpeg_forw = self.netAR(y_diffjpeg_forw)
                     y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, gaussian_scale * g_batch), dim=1)
                 else:
@@ -445,6 +439,7 @@ class IRNcaModel(BaseModel):
         out_dict['LR'] = self.forw_L.detach()[0].float().cpu()
         out_dict['GT'] = self.real_H.detach()[0].float().cpu()
         out_dict['SR_compressed'] = self.fake_H_compressed.detach()[0].float().cpu() if self.fake_H_compressed is not None else None
+        out_dict['LR_recovered'] = self.forw_L_recovered.detach()[0].float().cpu()
         return out_dict
 
     def print_network(self):

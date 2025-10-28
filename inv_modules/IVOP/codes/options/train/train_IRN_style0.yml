@@ -5,12 +5,12 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_10.27.0
+name: style_inv_10.28.0
 use_tb_logger: False
 model: IRNca
 distortion: sr
 scale: 1
-gpu_ids: [0, 1, 2, 3]
+gpu_ids: [1, 2, 3, 4]
 identity: True
 compress_flag: True
 compress_mode: diffjpeg
@@ -59,7 +59,7 @@ network_G:
   in_nc: 3
   out_nc: 3
   branch_type: single_branch
-  block_num: [6, 16] #8
+  block_num: [8, 18] #8
   scale: 1
   init: xavier
 
@@ -90,8 +90,6 @@ train:
   lr_scheme: MultiStepLR
   lr_steps: [10000, 20000, 30000, 40000]
   lr_gamma: 0.5
-  loss_cw: 2.0
-  loss_rw: 0.0
 
   pixel_criterion_forw: l2
   pixel_criterion_back: l2
@@ -103,13 +101,15 @@ train:
   val_freq: !!float 100
 
   lambda_fit_forw: 1.
-  lambda_rec_back: 4.
-  lambda_ce_forw: 0.
-  lambda_rec: 1.
+  lambda_rec_back: 1.
+  lambda_ce_forw: 0.1
+  lambda_rec_rec: 3.
   lambda_lpips_forw: 1.
   lambda_lpips_back: 0.
   lambda_ssim_forw: 0.
   lambda_ssim_back: 1.
+  loss_cw: 5.0
+  loss_rw: 0.0
   
   weight_decay_G: !!float 1e-5
   weight_decay_AR: !!float 1e-5

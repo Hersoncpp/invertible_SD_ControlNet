@@ -119,25 +119,19 @@ class SequentialBlock(nn.Module):
         super(SequentialBlock, self).__init__()
         
         channel = channel_in
-        subnets, redisual = [], []
+        subnets = []
         for _ in range(num_layers - 1):
             block = subnet_constructor(channel, channel_base, gc)
-            res_connection = nn.Conv2d(channel, channel_base, 1, bias=True)
-            mutil.initialize_weights_zeros(res_connection)
             subnets.append(block)
-            redisual.append(res_connection)
             channel = channel_base
         subnets.append(subnet_constructor(channel, channel_out, gc))
-        redisual.append(nn.Conv2d(channel, channel_out, 1, bias=True))
         self.subnets = nn.ModuleList(subnets)
-        self.redisual = nn.ModuleList(redisual)
         
         
     def forward(self, x):
         ori = x
         for i in range(len(self.subnets)):
-            res = self.redisual[i](x)
-            x = self.subnets[i](x) + res
+            x = self.subnets[i](x)
         return x + ori
 
 class Decompresser(nn.Module):
