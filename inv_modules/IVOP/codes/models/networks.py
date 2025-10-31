@@ -4,7 +4,7 @@ import models.modules.discriminator_vgg_arch as SRGAN_arch
 from models.modules.Inv_arch import *
 from models.modules.Subnet_constructor import subnet
 import sys
-sys.path.append('/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly')
+sys.path.append('/disk1/invSD/invertible_SD_ControlNet')
 from cldm.model import create_model, load_state_dict
 import math
 logger = logging.getLogger('base')
