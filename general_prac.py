@@ -38,59 +38,72 @@
 # if __name__ == "__main__":
 #     import numpy as np
 #     import matplotlib.pyplot as plt
-#     # a1=1, f1=3; a2=2, f2=6; a3=4, f3=12; a4=3, f4=15; a5=6, f5=24; a6=4, f6=30; a7=1, f7=33;
-#     alpha_list = [1, 2, 4, 3, 6, 4, 1]
-#     f_list = [3, 6, 12, 15, 24, 30, 33]
-#     threshold = 18
-#     def filter(alpha_list, f_list, threshold):
-#         filtered_alpha = []
-#         filtered_f = []
-#         for alpha, f in zip(alpha_list, f_list):
-#             if f <= threshold:
-#                 filtered_alpha.append(alpha)
-#                 filtered_f.append(f)
-#             else:
-#                 filtered_alpha.append(0)
-#                 filtered_f.append(f)
-#         return filtered_alpha, filtered_f
-#     def bandpass(alpha_list, f_list, low, high, threshold):
-#         filtered_alpha = []
-#         filtered_f = []
-#         for alpha, f in zip(alpha_list, f_list):
-#             if low <= f <= high:
-#                 filtered_alpha.append(alpha)
-#                 filtered_f.append(f)
-#             elif f < low:
-#                 filtered_alpha.append(0.5 * alpha)
-#                 filtered_f.append(f)
-#             elif high < f < threshold:
-#                 filtered_alpha.append(0.5 * alpha)
-#                 filtered_f.append(f)
-#             else:
-#                 filtered_alpha.append(0)
-#                 filtered_f.append(f)
-#         return filtered_alpha, filtered_f
-#     # alpha_list, f_list = filter(alpha_list, f_list, threshold=threshold)
-#     threshold = 15
-#     alpha_list, f_list = bandpass(alpha_list, f_list, low=6, high=9, threshold=threshold)
-#     # t = np.linspace(0, 1, max(f_list) + 1)  # time vector
-#     # signal = np.zeros_like(t)
-#     # for alpha, f in zip(alpha_list, f_list):
-#     #     signal += alpha * np.sin(2 * np.pi * f * t)
-
-#     plt.figure(figsize=(10, 4))
-#     # plt.plot(t, signal)
-#     plt.title('Signal in Frequency Domain')
-#     plt.xlabel('Frequency [Hz]')
-#     plt.ylabel('Amplitude')
-#     # set the x_axis range as [0, max(f_list) + 5]
-#     # label all freq in f_list on x axis
-#     plt.xticks(f_list+[threshold])
-#     plt.yticks(range(0, max(alpha_list) + 2))
-#     plt.stem(f_list, alpha_list, use_line_collection=True)
+#     # a1=a2=3.0/2.0, f1=9.2, f2=10.8, a3=a4=2.0, f3=19.1, f4=20.9, a5=a6=5.0/2.0, f5=28.6, f6=31.4
+#     alpha_list = [0, 3, 0, 0]
+#     f_list = [0, 0.8, 19.2, 20.8]
+#     # # threshold = 18
+#     # # def filter(alpha_list, f_list, threshold):
+#     # #     filtered_alpha = []
+#     # #     filtered_f = []
+#     # #     for alpha, f in zip(alpha_list, f_list):
+#     # #         if f <= threshold:
+#     # #             filtered_alpha.append(alpha)
+#     # #             filtered_f.append(f)
+#     # #         else:
+#     # #             filtered_alpha.append(0)
+#     # #             filtered_f.append(f)
+#     # #     return filtered_alpha, filtered_f
+#     # # def bandpass(alpha_list, f_list, low, high, threshold):
+#     # #     filtered_alpha = []
+#     # #     filtered_f = []
+#     # #     for alpha, f in zip(alpha_list, f_list):
+#     # #         if low <= f <= high:
+#     # #             filtered_alpha.append(alpha)
+#     # #             filtered_f.append(f)
+#     # #         elif f < low:
+#     # #             filtered_alpha.append(0.5 * alpha)
+#     # #             filtered_f.append(f)
+#     # #         elif high < f < threshold:
+#     # #             filtered_alpha.append(0.5 * alpha)
+#     # #             filtered_f.append(f)
+#     # #         else:
+#     # #             filtered_alpha.append(0)
+#     # #             filtered_f.append(f)
+#     # #     return filtered_alpha, filtered_f
+#     # # # alpha_list, f_list = filter(alpha_list, f_list, threshold=threshold)
+#     # # threshold = 15
+#     # # alpha_list, f_list = bandpass(alpha_list, f_list, low=6, high=9, threshold=threshold)
+#     # # t = np.linspace(0, 1, max(f_list) + 1)  # time vector
+#     # # signal = np.zeros_like(t)
+#     # # for alpha, f in zip(alpha_list, f_list):
+#     # #     signal += alpha * np.sin(2 * np.pi * f * t)
+    
+#     # plt.figure(figsize=(10, 4))
+#     # # plt.plot(t, signal)
+#     # plt.title('Signal in Frequency Domain')
+#     # plt.xlabel('Frequency [kHz]')
+#     # plt.ylabel('Amplitude')
+#     # # set the x_axis range as [0, max(f_list) + 5]
+#     # # label all freq in f_list on x axis
+#     # # also label 0 on x axis
+#     # plt.xticks([0.]+f_list)
+#     # plt.yticks([0]+alpha_list)
+#     # plt.stem(f_list, alpha_list, use_line_collection=True)
     
 
-#     plt.savefig('frequency_spectrum.png')
+#     # plt.savefig('frequency_spectrum.png')
+#     # plot a lowpass filter with threshold 0.8 and amplitude 2.0
+#     threshold = 0.8
+#     plt.figure(figsize=(10, 4))
+#     plt.title('Lowpass Filter')
+#     plt.xlabel('Frequency [kHz]')
+#     plt.ylabel('Amplitude')
+#     # plot 折线图
+#     plt.plot([0, 0, threshold, threshold, max(f_list)], [0, 2.0, 2.0, 0.0, 0.0], marker='o')
+#     plt.xticks([0., threshold, max(f_list)])
+#     plt.yticks([0, 2.0])
+#     plt.savefig('lowpass_filter.png')
+
 
 # KNN algorithm
 # import numpy as np
@@ -211,79 +224,101 @@
 # print(ans)
 
 
-import numpy as np
+# import numpy as np
 
-def euclidean_distance(a, b, print_flag = True):
-    leng = min(len(a), len(b))
-    if print_flag:
-        print(f"Distance between point {a} and centroid {b}:")
-        formular_str = "sqrt( "
-        for i in range(leng):
-            formular_str += f"({a[i]} - {b[i]})^2"
-            if i != leng - 1:
-                formular_str += " + "
-        formular_str += " )"
-    result = np.linalg.norm(np.array(a) - np.array(b))
-    if print_flag:
-        formular_str += f" = {result}"
-        print(formular_str)
-    return result
+# def euclidean_distance(a, b, print_flag = True):
+#     leng = min(len(a), len(b))
+#     if print_flag:
+#         print(f"Distance between point {a} and centroid {b}:")
+#         formular_str = "sqrt( "
+#         for i in range(leng):
+#             formular_str += f"({a[i]} - {b[i]})^2"
+#             if i != leng - 1:
+#                 formular_str += " + "
+#         formular_str += " )"
+#     result = np.linalg.norm(np.array(a) - np.array(b))
+#     if print_flag:
+#         formular_str += f" = {result}"
+#         print(formular_str)
+#     return result
 
-def KNN(K, points, distance_metric, max_iters=1):
-    # first step select K random points as initial centroids
-    centroids = [points[i][0] for i in range(K)]
-    print(f'Take the first {K} points as initial centroids: {centroids}')
-    for iter in range(max_iters):
-        clusters = [[] for _ in range(K)]
-        for point, label in points:
-            print(f"calculate distances from point {point} to 2 centroids:")
-            distances = [distance_metric(point, centroid) for centroid in centroids]
-            min_index = np.argmin(distances)
-            print(f"The point is assigned to the cluster {min_index + 1} with centroid {centroids[min_index]}\n")
-            clusters[min_index].append((point, label))
-        new_centroids = []
-        print(f'After the first iteration, recalculate the centroids:')
-        for idx, cluster in enumerate(clusters):
-            if len(cluster) == 0:
-                new_centroids.append(np.random.rand(len(points[0][0])).tolist())
-                continue
-            cluster_points = np.array([p[0] for p in cluster])
-            print(f" Cluster {idx + 1} points: {cluster_points.tolist()}")
-            print(f" New centroid of cluster {idx + 1} is the mean of these points:")
-            tmp_cluster_points = cluster_points.tolist()
-            formular_str = f"1/{len(tmp_cluster_points)} * ( "
-            for i, p in enumerate(tmp_cluster_points):
-                formular_str += f"{p}"
-                if i != len(tmp_cluster_points) - 1:
-                    formular_str += " + "
-            formular_str += " )"
+# def KNN(K, points, distance_metric, max_iters=1):
+#     # first step select K random points as initial centroids
+#     centroids = [points[i][0] for i in range(K)]
+#     print(f'Take the first {K} points as initial centroids: {centroids}')
+#     for iter in range(max_iters):
+#         clusters = [[] for _ in range(K)]
+#         for point, label in points:
+#             print(f"calculate distances from point {point} to 2 centroids:")
+#             distances = [distance_metric(point, centroid) for centroid in centroids]
+#             min_index = np.argmin(distances)
+#             print(f"The point is assigned to the cluster {min_index + 1} with centroid {centroids[min_index]}\n")
+#             clusters[min_index].append((point, label))
+#         new_centroids = []
+#         print(f'After the first iteration, recalculate the centroids:')
+#         for idx, cluster in enumerate(clusters):
+#             if len(cluster) == 0:
+#                 new_centroids.append(np.random.rand(len(points[0][0])).tolist())
+#                 continue
+#             cluster_points = np.array([p[0] for p in cluster])
+#             print(f" Cluster {idx + 1} points: {cluster_points.tolist()}")
+#             print(f" New centroid of cluster {idx + 1} is the mean of these points:")
+#             tmp_cluster_points = cluster_points.tolist()
+#             formular_str = f"1/{len(tmp_cluster_points)} * ( "
+#             for i, p in enumerate(tmp_cluster_points):
+#                 formular_str += f"{p}"
+#                 if i != len(tmp_cluster_points) - 1:
+#                     formular_str += " + "
+#             formular_str += " )"
             
-            new_centroid = np.mean(cluster_points, axis=0).tolist()
-            formular_str += f" = {new_centroid}"
-            print(formular_str)
-            new_centroids.append(new_centroid)
-        if euclidean_distance(np.array(centroids), np.array(new_centroids), print_flag=False) < 1e-2:
-            break
-        centroids = new_centroids
-    return clusters, centroids
+#             new_centroid = np.mean(cluster_points, axis=0).tolist()
+#             formular_str += f" = {new_centroid}"
+#             print(formular_str)
+#             new_centroids.append(new_centroid)
+#         if euclidean_distance(np.array(centroids), np.array(new_centroids), print_flag=False) < 1e-2:
+#             break
+#         centroids = new_centroids
+#     return clusters, centroids
 
 
-if __name__ == "__main__":
-    points = []
-    points.append(([12.0, 45.0, 78.0], ''))
-    points.append(([14.0, 40.0, 81.0], 'B'))
-    points.append(([11.0, 43.0, 77.0], 'B'))
-    points.append(([14.0, 47.0, 79.0], 'A'))
-    points.append(([15.0, 41.0, 83.0], 'A'))
-    points.append(([11.0, 44.0, 75.0], 'B'))
+# if __name__ == "__main__":
+#     points = []
+#     points.append(([12.0, 45.0, 78.0], ''))
+#     points.append(([14.0, 40.0, 81.0], 'B'))
+#     points.append(([11.0, 43.0, 77.0], 'B'))
+#     points.append(([14.0, 47.0, 79.0], 'A'))
+#     points.append(([15.0, 41.0, 83.0], 'A'))
+#     points.append(([11.0, 44.0, 75.0], 'B'))
 
 
-    K = 2
+#     K = 2
 
-    clusters, centroids = KNN(K, points, distance_metric=euclidean_distance, max_iters=1)
-    print("So the answer is:")
-    for i, cluster in enumerate(clusters):
-        print(f"Cluster {i+1}:")
-        print(f" Centroid: {centroids[i]}")
-        for point, label in cluster:
-            print(f"  Point: {point}")
+#     clusters, centroids = KNN(K, points, distance_metric=euclidean_distance, max_iters=1)
+#     print("So the answer is:")
+#     for i, cluster in enumerate(clusters):
+#         print(f"Cluster {i+1}:")
+#         print(f" Centroid: {centroids[i]}")
+#         for point, label in cluster:
+#             print(f"  Point: {point}")
+
+
+# from math import log2
+
+
+# if __name__ == "__main__":
+#     lst = [6, 35 ,77, 112, 103, 8]
+#     sumlst = 341
+#     res = 0
+#     import math
+#     for ele in lst:
+#         res += -1.0 * (ele / sumlst) * math.log2(ele / sumlst)
+#     print(sumlst*res)
+#     print(math.log2(6))
+#     print(341*math.log2(6))
+import numpy as np
+x = np.array([[1, 2, 3], [4, 5, 6]])
+y = np.ones((3, 4, 5))
+print(len(x))
+print(x.shape)
+print(len(y.T))
+print(y.T.shape)

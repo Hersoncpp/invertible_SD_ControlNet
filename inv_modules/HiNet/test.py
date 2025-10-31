@@ -188,11 +188,11 @@ with torch.no_grad():
         cover_rev = iwt(cover_rev)
         resi_cover = (steg_img - cover) * 20
         resi_secret = (secret_rev - secret) * 20
-
-        torchvision.utils.save_image(cover, c.IMAGE_PATH_cover + '%.5d.jpg' % i)
-        torchvision.utils.save_image(secret, c.IMAGE_PATH_secret + '%.5d.jpg' % i)
-        torchvision.utils.save_image(steg_img, c.IMAGE_PATH_steg + '%.5d.jpg' % i)
-        torchvision.utils.save_image(secret_rev, c.IMAGE_PATH_secret_rev + '%.5d.jpg' % i)
+        img_type = 'png'   
+        torchvision.utils.save_image(cover, c.IMAGE_PATH_cover + '%.5d.' + img_type % i)
+        torchvision.utils.save_image(secret, c.IMAGE_PATH_secret + '%.5d.' + img_type % i)
+        torchvision.utils.save_image(steg_img, c.IMAGE_PATH_steg + '%.5d.' + img_type % i)
+        torchvision.utils.save_image(secret_rev, c.IMAGE_PATH_secret_rev + '%.5d.' + img_type % i)
         # break
 
 

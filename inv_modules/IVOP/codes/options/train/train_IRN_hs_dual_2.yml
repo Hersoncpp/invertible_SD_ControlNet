@@ -5,12 +5,12 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_png_dual_branch_8_4
+name: style_inv_png_dual_branch_4_8_dbnet
 use_tb_logger: False
 model: IRN+
 distortion: sr
 scale: 1
-gpu_ids: [1,2,3,4]
+gpu_ids: [3, 4, 5, 6]
 identity: True
 compress_flag: False
 compress_mode: diffjpeg
@@ -52,13 +52,13 @@ datasets:
 
 network_G:
   which_model_G:
-      subnet_type: ConvNet
-      # fusion_submodule_type: CBAM # ConvNet
+      subnet_type: DBNet # CBAM
+      fusion_submodule_type: DBNet
       non_inv_block: "Identity" #"control_v11e_sd15_ip2p-finetuned"
   in_nc: 3
   out_nc: 3
   branch_type: dual_branch
-  block_num: [8, 8, 4] #8
+  block_num: [4, 4, 4] #8
   scale: 1
   init: xavier
 
@@ -71,7 +71,7 @@ path:
 
   strict_load: false
   # resume_state: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv_archived_250927-194353/training_state/46100.state # "path to the .state file" or ~
-  resume_state: ~
+  resume_state: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv_png_dual_branch_4_8_dbnet/training_state/25200.state
 
 
 #### training settings: learning rate scheme, loss
@@ -97,7 +97,7 @@ train:
   val_freq: !!float 100
 
   lambda_fit_forw: 1.
-  lambda_rec_back: 4.
+  lambda_rec_back: 5.
   lambda_ce_forw: 0.
   lambda_lpips_forw: 1.
   lambda_lpips_back: 0.

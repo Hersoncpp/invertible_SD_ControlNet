@@ -5,12 +5,12 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_png_dual_branch_8_4
+name: style_inv_png_single_branch_8_4
 use_tb_logger: False
 model: IRN+
 distortion: sr
 scale: 1
-gpu_ids: [1,2,3,4]
+gpu_ids: [6]
 identity: True
 compress_flag: False
 compress_mode: diffjpeg
@@ -53,12 +53,11 @@ datasets:
 network_G:
   which_model_G:
       subnet_type: ConvNet
-      # fusion_submodule_type: CBAM # ConvNet
       non_inv_block: "Identity" #"control_v11e_sd15_ip2p-finetuned"
   in_nc: 3
   out_nc: 3
-  branch_type: dual_branch
-  block_num: [8, 8, 4] #8
+  branch_type: single_branch
+  block_num: [8, 4] #8
   scale: 1
   init: xavier
 

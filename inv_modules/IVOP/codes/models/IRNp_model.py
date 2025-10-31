@@ -379,7 +379,9 @@ class IRNpModel(BaseModel):
                 y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
             
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
-            self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :] if self.compress_mode == 'diffjpeg' else None
+            if compress_flag:
+                if self.compress_mode == 'diffjpeg':
+                    self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :]
 
         self.netG.train()
 

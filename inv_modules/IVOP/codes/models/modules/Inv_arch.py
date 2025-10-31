@@ -116,7 +116,7 @@ class InvBlockTriad(nn.Module):
         return 1
 
 class InvRescaleNet(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNet, self).__init__()
 
         operations = []
@@ -131,7 +131,7 @@ class InvRescaleNet(nn.Module):
                 operations.append(b)
 
             for j in range(block_num[1]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockExp(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations = nn.ModuleList(operations)
@@ -258,7 +258,7 @@ class InvRescaleNet(nn.Module):
             return out_
 
 class InvRescaleNetD(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNetD, self).__init__()
 
         operations_cover = []
@@ -278,7 +278,7 @@ class InvRescaleNetD(nn.Module):
                 operations_cover.append(b)
 
             for j in range(block_num[2]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockExp(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations_cover = nn.ModuleList(operations_cover)

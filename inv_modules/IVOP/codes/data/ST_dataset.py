@@ -6,6 +6,13 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 
 class STDataset(Dataset):
+    """
+    Style Transfer Dataset
+    Args:
+        dataset_opt: dataset options, including data_json_file, resolution, etc.
+    Returns:
+        data: dataset, including GT, LQ, prompt, GT_path, LQ_path
+    """
     def __init__(self, dataset_opt):
         super(STDataset, self).__init__()
         self.opt = dataset_opt
