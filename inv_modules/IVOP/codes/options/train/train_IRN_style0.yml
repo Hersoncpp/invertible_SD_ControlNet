@@ -10,7 +10,7 @@ use_tb_logger: False
 model: IRNca
 distortion: sr
 scale: 1
-gpu_ids: [0, 1]
+gpu_ids: [0, 1, 2, 3]
 identity: True
 compress_flag: True
 compress_mode: diffjpeg
