@@ -34,7 +34,7 @@ class Decompresser(nn.Module):
         return self.net(x)
     
 class DifferenceEncoder(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, block_type='CBAM', init='xavier'):
+    def __init__(self, channel_in=3, channel_out=3, block_type='DBNet', init='xavier'):
         super(DifferenceEncoder, self).__init__()
         subnet_constructor = subnet(block_type, init)
         self.net = SequentialBlock(subnet_constructor, channel_in, channel_out, channel_base=32, gc=32, num_layers=16)

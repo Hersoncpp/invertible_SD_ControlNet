@@ -5,7 +5,7 @@ from models.modules.Inv_arch import *
 from models.modules.Subnet_constructor import subnet
 from models.modules.decompresser import Decompresser
 import sys
-sys.path.append('/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly')
+sys.path.append('/home/hwangem/invSD/invertible_SD_ControlNet')
 from cldm.model import create_model, load_state_dict
 import math
 logger = logging.getLogger('base')
