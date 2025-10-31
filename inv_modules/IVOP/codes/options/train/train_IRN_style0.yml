@@ -60,7 +60,7 @@ network_G:
   in_nc: 3
   out_nc: 3
   branch_type: single_branch
-  block_num: [8, 20] #8
+  block_num: [4, 16] #8
   scale: 1
   init: xavier
 
