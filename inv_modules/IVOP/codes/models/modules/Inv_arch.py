@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
+from models.modules.attention import CrossAttention
 
 class InvBlockExp(nn.Module):
     def __init__(self, subnet_constructor, channel_num, channel_split_num, clamp=1.):
@@ -41,7 +41,7 @@ class InvBlockExp(nn.Module):
         return jac / x.shape[0]
 
 class InvBlockTriad(nn.Module):
-    def __init__(self, subnet_constructor, cover_channel_num, secret_channel_num, resolution_channel_num, sequence=None, clamp=1.):
+    def __init__(self, cover_channel_num, secret_channel_num, resolution_channel_num, sequence=None, clamp=1., init='xavier', gc=24, bias=True):
         super(InvBlockExp, self).__init__()
 
         self.cover_channel_num = cover_channel_num
@@ -51,61 +51,58 @@ class InvBlockTriad(nn.Module):
         self.clamp = clamp
         
         if sequence is None:
-            self.sequence = [['F', 'cr'], ['F', 'rs'], ['F', 'sc'],
-                             ['H', 'cs'], ['H', 'sr'], ['H', 'rc'],
-                             ['G', 'cs'], ['G', 'sr'], ['G', 'rc']]
+            self.opt_sequence = [['+', 'rs'], ['*', 'rc'], ['*', 'sc'], ['+', 'rc'], ['+', 'sc']]
         else:
-            self.sequence = sequence
+            self.opt_sequence = sequence
         
         self.subnets = []
-        for subnet_opt in self.sequence:
+        for subnet_opt in self.opt_sequence:
             net_type, net_dir = subnet_opt
-            net_from, net_to = net_dir[0], net_dir[1]
+            branch_1, branch_2 = net_dir[0], net_dir[1]
             
-            if net_type == 'F':
-                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
-            elif net_type == 'G':
-                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
-            elif net_type == 'H':
-                subnet = subnet_constructor(self.which_pass(net_from)[1], self.which_pass(net_to)[1])
+            subnet = CrossAttention(self.which_pass(branch_1)[1], self.which_pass(branch_2)[1], self.which_pass(net_dir)[1], init=init, gc=gc, bias=bias)
                 
-            self.subnets.append((net_type, self.which_pass(net_from)[0], self.which_pass(net_to)[0], subnet))
+            self.subnets.append(net_type,
+                                (self.which_pass(branch_1)[0], self.which_pass(branch_2)[0], self.which_pass(net_dir)[0]), 
+                                subnet)
     
     def which_pass(self, pass_id):
-        if pass_id == 'c':
+        if pass_id == 'c' or pass_id == 'rs':
             return 0, self.cover_channel_num
-        elif pass_id == 's':
+        elif pass_id == 's' or pass_id == 'rc':
             return 1, self.secret_channel_num
-        elif pass_id == 'r':
+        elif pass_id == 'r' or pass_id == 'sc':
             return 2, self.resolution_channel_num
     
-    def branch_forward(self, x1, x2, net_type, net, rev=False):
-        if net_type == 'F' or net_type == 'G':
+    def branch_forward(self, x1, x2, y, net_type, net, rev=False):
+        if net_type == '+':
             if not rev:
-                y2 = x2 + net(x1)
+                y += net(x1, x2)
             else:
-                y2 = x2 - net(x1)
+                y -= net(x1)
         elif net_type == 'H':
             if not rev:
-                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
-                y2 = x2.mul(torch.exp(s))
+                s = self.clamp * (torch.sigmoid(net(x1, x2)) * 2 - 1)
+                y = y.mul(torch.exp(s))
             else:
-                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
-                y2 = x2.div(torch.exp(s))
+                s = self.clamp * (torch.sigmoid(net(x1, x2)) * 2 - 1)
+                y = y.div(torch.exp(s))
                 
-        return x1, y2
+        return x1, x2, y
 
     def forward(self, c, s, r, rev=False):
         passes = [c, s, r]
         
         if not rev:
             for subnet in self.subnets:
-                net_type, from_id, to_id, net = subnet
-                passes[from_id], passes[to_id] = self.branch_forward(passes[from_id], passes[to_id], net_type, net, rev)
+                net_type, direction, net = subnet
+                x1_id, x2_id, y_id = direction
+                passes[x1_id], passes[x2_id], passes[y_id] = self.branch_forward(passes[x1_id], passes[x2_id], passes[y_id], net_type, net, rev)
         else:
             for subnet in reversed(self.subnets):
-                net_type, from_id, to_id, net = subnet
-                passes[from_id], passes[to_id] = self.branch_forward(passes[from_id], passes[to_id], net_type, subnet, rev)
+                net_type, direction, net = subnet
+                x1_id, x2_id, y_id = direction
+                passes[x1_id], passes[x2_id], passes[y_id] = self.branch_forward(passes[x1_id], passes[x2_id], passes[y_id], net_type, net, rev)
 
         return passes[0], passes[1], passes[2]
 
@@ -523,7 +520,6 @@ class InvNetCorruptionAware(nn.Module):
             
             for op in self.inv_blocks:
                 c, s, r = op.forward(c, s, r, rev)  
-            return s, c, r
              
         else:
             

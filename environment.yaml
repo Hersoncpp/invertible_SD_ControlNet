@@ -1,4 +1,4 @@
-name: control-v11
+name: ctrl
 channels:
   - pytorch
   - defaults

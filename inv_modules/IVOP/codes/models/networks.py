@@ -112,5 +112,5 @@ def define_F(opt, use_bn=False):
 
 ### Artifact Remover Network
 def define_AR(opt):
-    netAR = Decompresser(channel=3, block_type='CBAM', init='xavier')
+    netAR = Decompresser(channel=3, block_type='ConvNet', init='xavier')
     return netAR
