@@ -10,7 +10,7 @@ class STDataset(Dataset):
         super(STDataset, self).__init__()
         self.opt = dataset_opt
         self.data = []
-        data_json_file = dataset_opt.get('data_json_file', '/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/dataset/OmniEdit-Filtered-1.2M/prompts.json')
+        data_json_file = dataset_opt.get('data_json_file', '/home/hwangem/invSD/invertible_SD_ControlNet/dataset/OmniEdit-Filtered-1.2M_train/prompts.json')
         resolution = dataset_opt.get('resolution',512) #512
         with open(data_json_file, 'rt') as f:
             for line in f:

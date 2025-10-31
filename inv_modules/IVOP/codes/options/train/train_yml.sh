@@ -1,0 +1,1 @@
+scp -r hesong@cqcpu10.cse.ust.hk:/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/codes/options/train/* /disk1/invSD/invertible_SD_ControlNet/inv_modules/IVOP/codes/options/train/

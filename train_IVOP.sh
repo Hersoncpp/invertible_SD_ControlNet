@@ -1,0 +1,1 @@
+nohup torchrun --nproc_per_node=4 --master_port=2950$1 ./inv_modules/IVOP/codes/train.py -opt /disk1/invSD/invertible_SD_ControlNet/inv_modules/IVOP/codes/options/train/train_IRN_hs_$2_$1.yml --launcher pytorch  &>/disk1/invSD/invertible_SD_ControlNet/inv_modules/IVOP/experiments/nohup_$2_$1.out &
