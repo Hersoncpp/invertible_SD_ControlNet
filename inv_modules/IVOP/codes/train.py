@@ -22,6 +22,7 @@ def init_dist(backend='nccl', **kwargs):
         mp.set_start_method('spawn')
     rank = int(os.environ['RANK'])
     num_gpus = torch.cuda.device_count()
+    print(f"Number of GPUs: {num_gpus}")
     torch.cuda.set_device(rank % num_gpus)
     dist.init_process_group(backend=backend, **kwargs)
 
@@ -43,6 +44,7 @@ def main():
         rank = -1
         print('Disabled distributed training.')
     else:
+        print('Using distributed training.')
         opt['dist'] = True
         init_dist()
         world_size = torch.distributed.get_world_size()
@@ -54,7 +56,7 @@ def main():
         device_id = torch.cuda.current_device()
         resume_state = torch.load(opt['path']['resume_state'],
                                   map_location=lambda storage, loc: storage.cuda(device_id))
-        print(resume_state)
+        # print(resume_state)
         option.check_resume(opt, resume_state['iter'])  # check resume options
     else:
         resume_state = None
@@ -103,7 +105,7 @@ def main():
     # torch.backends.cudnn.deterministic = True
 
     #### create train and val dataloader
-    dataset_ratio = 200  # enlarge the size of each epoch
+    dataset_ratio = 2  # enlarge the size of each epoch
     for phase, dataset_opt in opt['datasets'].items():
         if phase == 'train':
             train_set = create_dataset(dataset_opt)
@@ -195,7 +197,7 @@ def main():
                     visuals = model.get_current_visuals()
                     sr_img = util.tensor2img(visuals['SR'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
-                    if opt['compress_mode'] == 'diffjpeg':
+                    if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
                         sr_img_diff = util.tensor2img(visuals['SR_compressed'])
                         
                     lr_img = util.tensor2img(visuals['LR'])
@@ -208,7 +210,7 @@ def main():
                     util.save_img(sr_img, save_img_path)
 
                     # Save SR compressed images for reference
-                    if opt['compress_mode'] == 'diffjpeg':
+                    if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
                         save_img_path_compressed = os.path.join(img_dir,
                                                      '{:s}_diff_{:d}.jpg'.format(img_name, current_step))
                         util.save_img(sr_img_diff, save_img_path_compressed)
@@ -228,32 +230,39 @@ def main():
                     crop_size = opt['scale']
                     gt_img = gt_img / 255.
                     sr_img = sr_img / 255.
-                    sr_img_diff = sr_img_diff / 255. if opt['compress_mode'] == 'diffjpeg' else None
+                    sr_img_diff = sr_img_diff / 255. if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag'] else None
                     gtl_img = gtl_img / 255.
                     lr_img = lr_img / 255.
                     # print("crop_size:")
                     # print(crop_size)
                     # print(sr_img.shape, gt_img.shape)
                     cropped_sr_img = sr_img[crop_size:-crop_size, crop_size:-crop_size, :]
-                    cropped_sr_img_diff = sr_img_diff[crop_size:-crop_size, crop_size:-crop_size, :] if opt['compress_mode'] == 'diffjpeg' else None
+                    cropped_sr_img_diff = sr_img_diff[crop_size:-crop_size, crop_size:-crop_size, :] if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag'] else None
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_lr_img = lr_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_gtl_img = gtl_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     # print(cropped_sr_img.shape, cropped_gt_img.shape)
                     avg_psnr += util.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
-                    if opt['compress_mode'] == 'diffjpeg':
+                    if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
                         avg_psnr_diff += util.calculate_psnr(cropped_sr_img_diff * 255, cropped_gt_img * 255)
                     avg_psnr_l += util.calculate_psnr(cropped_lr_img * 255, cropped_gtl_img * 255)
 
                 avg_psnr = avg_psnr / idx
-                avg_psnr_diff = avg_psnr_diff / idx if opt['compress_mode'] == 'diffjpeg' else -1
+                avg_psnr_diff = avg_psnr_diff / idx if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag'] else -1
                 avg_psnr_l = avg_psnr_l / idx
 
                 # log
-                logger.info('# Validation # PSNR_SOURCE: {:.4e}  # PSNR_SOURCE_DIFF: {:.4e}  # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_diff, avg_psnr_l))
+                if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
+                    logger.info('# Validation # PSNR_SOURCE: {:.4e}  # PSNR_SOURCE_DIFF: {:.4e}  # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_diff, avg_psnr_l))
+                else:
+                    logger.info('# Validation # PSNR_SOURCE: {:.4e}  # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_l))
                 logger_val = logging.getLogger('val')  # validation logger
-                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}, {:.4e}.'.format(
-                    epoch, current_step, avg_psnr, avg_psnr_diff))
+                if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
+                    logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}, {:.4e}.'.format(
+                        epoch, current_step, avg_psnr, avg_psnr_diff))
+                else:
+                    logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}.'.format(
+                        epoch, current_step, avg_psnr))
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:
                     tb_logger.add_scalar('psnr', avg_psnr, current_step)

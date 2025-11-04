@@ -40,9 +40,18 @@ class STDataset(Dataset):
         source_fpth = item['source']
         target_fpth = item['target']
         prompt = item['prompt']
+        # print('source_fpth:', source_fpth)
+        # print('target_fpth:', target_fpth)
+        # print('prompt:', prompt)
 
         source = cv2.imread(source_fpth)
         target = cv2.imread(target_fpth)
+
+        # check if source and target are empty
+        if source is None or target is None:
+            print(f'source or target is empty at index {idx}, with path {source_fpth} and {target_fpth}')
+            return self.__getitem__(idx + 1)
+
         # print("source, target fpth:", source_fpth, target_fpth)
         # print("#######################################source--before############################################")
         # print(source.shape)
