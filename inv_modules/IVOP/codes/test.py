@@ -60,9 +60,58 @@ for test_loader in test_loaders:
         img_path = data['GT_path'][0]
         img_name = osp.splitext(osp.basename(img_path))[0]
 
-        model.test(jpg_compress=False)
+        model.test(compress_flag=False, save_intermediate=opt['save_intermediate'])
         # model.predict()
         visuals = model.get_current_visuals()
+        intermediate_outputs = model.get_intermediate_outputs()
+        if opt['save_intermediate']:
+            print(f"intermediate_outputs: {intermediate_outputs.keys()}")
+            #将每个key单独作为一行，其中该行内容为该key的所有图片从左到右拼接起来，然后保存为一张图片
+            cat_img_list = []
+            for key, value in intermediate_outputs.items():
+                img_list = []
+                img1_list = []
+                img2_list = []
+                for i, img in enumerate(value):
+                    # from [C, H, W] to [H, W, C]
+                    # clamp to [0, 1]
+                    img = img.transpose(1, 2, 0)*255.0
+                    img = np.clip(img, 0, 255)
+                    img = img.astype(np.uint8)
+                    # to BGR
+                    img = img[..., ::-1]
+
+                    # 有的img channel是6，此时按照channel=3 split为2张图，然后保存
+                    if img.shape[2] == 3:
+                        util.save_img(img, osp.join(dataset_dir, img_name + f'_{key}_{i}.jpg'))
+                        img_list.append(img)
+                    else:
+                        # channel = 6, split to 2 images
+                        img1 = img[:, :, :3]
+                        img2 = img[:, :, 3:]
+                        util.save_img(img1, osp.join(dataset_dir, img_name + f'_{key}_{i}_steg.jpg'))
+                        img1_list.append(img1)
+                        util.save_img(img2, osp.join(dataset_dir, img_name + f'_{key}_{i}_guassian.jpg'))
+                        img2_list.append(img2)
+
+                if len(img_list) > 0:
+                    cat_img_list.append(np.concatenate(img_list, axis=1))
+                if len(img1_list) > 0:
+                    cat_img_list.append(np.concatenate(img1_list, axis=1))
+                if len(img2_list) > 0:
+                    cat_img_list.append(np.concatenate(img2_list, axis=1))
+                
+                # save cat_img_list to a single image by concatenating all the images in the list and padding with white pixels
+                max_dim_width = max([cat_img.shape[1] for cat_img in cat_img_list])
+                for cat_img in cat_img_list:
+                    # pad the image to the same width
+                    # print((cat_img.shape[0], max_dim_width, 3))
+                    new_cat_img = np.full((cat_img.shape[0], max_dim_width, 3), 255, dtype=np.uint8)
+                    new_cat_img[:, :cat_img.shape[1], :] = cat_img
+                    cat_img = new_cat_img
+                cat_img = np.concatenate(cat_img_list, axis=0)
+                util.save_img(cat_img, osp.join(dataset_dir, img_name + f'_{key}.jpg'))
+                cat_img_list = []
 
         sr_img = util.tensor2img(visuals['SR'])  # uint8 recovered ori image
         srgt_img = util.tensor2img(visuals['GT'])  # uint8 gt ori image

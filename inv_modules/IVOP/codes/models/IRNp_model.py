@@ -29,6 +29,7 @@ class IRNpModel(BaseModel):
         test_opt = opt['test']
         self.tmp_file_name = opt['name']
         print(f"Tmp file saved at {self.tmp_file_name}.")
+        self.compress_flag = opt['compress_flag']
         self.train_opt = train_opt
         self.test_opt = test_opt
         self.prompt = None
@@ -37,6 +38,7 @@ class IRNpModel(BaseModel):
         print(f"cw: {self.cw}, rw: {self.rw}")
         
         self.netG = networks.define_G(opt).to(self.device)
+        self.intermediate_outputs = None
         if opt['dist']:
             self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
         else:
@@ -324,7 +326,7 @@ class IRNpModel(BaseModel):
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
         self.netG.train()
 
-    def test(self, compress_flag=False):
+    def test(self, compress_flag=False, save_intermediate=False):
         Lshape = self.ref_L.shape
 
         input_dim = Lshape[1]
@@ -340,6 +342,9 @@ class IRNpModel(BaseModel):
             gaussian_scale = self.test_opt['gaussian_scale']
 
         self.netG.eval()
+        self.netG.module.save_intermediate = save_intermediate
+        if save_intermediate:
+            self.netG.module.intermediate_outputs = {}
         with torch.no_grad():
             if self.prompt is not None:
                 self.forw_L = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input)[:, :3, :, :]
@@ -382,7 +387,11 @@ class IRNpModel(BaseModel):
             if compress_flag:
                 self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :] if self.compress_mode == 'diffjpeg' else None
 
+        self.netG.module.save_intermediate = False
         self.netG.train()
+        if save_intermediate:
+            self.intermediate_outputs = self.netG.module.intermediate_outputs.copy()
+            # print(f"intermediate_outputs: {self.intermediate_outputs.keys()}")
 
     def downscale(self, HR_img):
         self.netG.eval()
@@ -414,7 +423,8 @@ class IRNpModel(BaseModel):
         out_dict['SR'] = self.fake_H.detach()[0].float().cpu()
         out_dict['LR'] = self.forw_L.detach()[0].float().cpu()
         out_dict['GT'] = self.real_H.detach()[0].float().cpu()
-        out_dict['SR_compressed'] = self.fake_H_compressed.detach()[0].float().cpu() if self.fake_H_compressed is not None else None
+        if self.compress_flag:
+            out_dict['SR_compressed'] = self.fake_H_compressed.detach()[0].float().cpu() if self.fake_H_compressed is not None and self.compress_mode == 'diffjpeg' else None
         return out_dict
 
     def print_network(self):
@@ -442,3 +452,9 @@ class IRNpModel(BaseModel):
     def save(self, iter_label):
         self.save_network(self.netG, 'G', iter_label)
         # self.save_network(self.netD, 'D', iter_label)
+    
+    def get_intermediate_outputs(self):
+        if self.intermediate_outputs is not None:
+            return self.intermediate_outputs
+        else:
+            return None

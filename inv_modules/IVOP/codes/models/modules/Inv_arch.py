@@ -17,6 +17,7 @@ class InvBlockExp(nn.Module):
         self.F = subnet_constructor(self.split_len2, self.split_len1)
         self.G = subnet_constructor(self.split_len1, self.split_len2)
         self.H = subnet_constructor(self.split_len1, self.split_len2)
+        
 
     def forward(self, x, rev=False):
         x1, x2 = (x.narrow(1, 0, self.split_len1), x.narrow(1, self.split_len1, self.split_len2))
@@ -205,6 +206,8 @@ class InvRescaleNet(nn.Module):
                 return x_samples
 
             self.uninvBranch = process
+            # self.save_intermediate = save_intermediate
+            # self.intermediate_outputs = {}
 
         
 
@@ -258,9 +261,11 @@ class InvRescaleNet(nn.Module):
             return out_
 
 class InvRescaleNetD(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, save_intermediate=False):
         super(InvRescaleNetD, self).__init__()
 
+        self.save_intermediate = save_intermediate
+        self.intermediate_outputs = {}
         operations_cover = []
         operations_secret = []
         operations_final = []
@@ -366,6 +371,10 @@ class InvRescaleNetD(nn.Module):
         if not rev: 
             for op in self.operations_secret:
                 out = op.forward(out, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('forward_operations_secret') is None:
+                        self.intermediate_outputs['forward_operations_secret'] = []
+                    self.intermediate_outputs['forward_operations_secret'].append(out.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out, rev)
                     
@@ -381,6 +390,10 @@ class InvRescaleNetD(nn.Module):
 
             for op in self.operations_cover:
                 out_uninv = op.forward(out_uninv, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('forward_operations_cover') is None:
+                        self.intermediate_outputs['forward_operations_cover'] = []
+                    self.intermediate_outputs['forward_operations_cover'].append(out_uninv.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out_uninv, rev)
             
@@ -389,6 +402,10 @@ class InvRescaleNetD(nn.Module):
             
             for op in self.operations_final:
                 out_ = op.forward(out_, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('forward_operations_final') is None:
+                        self.intermediate_outputs['forward_operations_final'] = []
+                    self.intermediate_outputs['forward_operations_final'].append(out_.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out_, rev)      
             return out_   
@@ -396,6 +413,10 @@ class InvRescaleNetD(nn.Module):
         else:
             for op in reversed(self.operations_final):
                 out = op.forward(out, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('reverse_operations_final') is None:
+                        self.intermediate_outputs['reverse_operations_final'] = []
+                    self.intermediate_outputs['reverse_operations_final'].append(out.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out, rev)
         
@@ -403,12 +424,20 @@ class InvRescaleNetD(nn.Module):
             out_cover = out[:,3:,:,:]
             for op in reversed(self.operations_secret):
                 out_secret = op.forward(out_secret, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('reverse_operations_secret') is None:
+                        self.intermediate_outputs['reverse_operations_secret'] = []
+                    self.intermediate_outputs['reverse_operations_secret'].append(out_secret.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out_secret, rev)
             out_ = out_secret
             
             for op in reversed(self.operations_cover):
                 out_cover = op.forward(out_cover, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('reverse_operations_cover') is None:
+                        self.intermediate_outputs['reverse_operations_cover'] = []
+                    self.intermediate_outputs['reverse_operations_cover'].append(out_cover.detach().cpu().numpy().squeeze(0))
                 if cal_jacobian:
                     jacobian += op.jacobian(out_cover, rev)
 
@@ -416,6 +445,12 @@ class InvRescaleNetD(nn.Module):
             return out_, jacobian
         else:
             return out_
+    
+    def get_intermediate_outputs(self):
+        if self.save_intermediate:
+            return self.intermediate_outputs
+        else:
+            return None
 
 class InvNetJPEGAware(nn.Module):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=8, down_num=2, non_inv_block = None):

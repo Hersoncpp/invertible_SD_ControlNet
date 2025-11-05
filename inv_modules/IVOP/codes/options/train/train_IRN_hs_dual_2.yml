@@ -14,6 +14,7 @@ gpu_ids: [0]
 identity: True
 compress_flag: False
 compress_mode: diffjpeg
+save_intermediate: True
 #### datasets
  
 datasets:
@@ -67,7 +68,7 @@ network_G:
 
 path:
   # pretrain_model_G: /disk1/ouyang/proj/invert_image_op/Invertible-Image-Rescaling/experiments/jpg_WMF_twoBranches_4_1/models/100000_G.pth 
-  # pretrain_model_G: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv_archived_250927-194353/models/latest_G.pth
+  pretrain_model_G: /disk1/invSD/invertible_SD_ControlNet/inv_modules/IVOP/experiments/style_inv_png_dual_branch_4_8_dbnet/models/latest_G.pth
 
   strict_load: false
   # resume_state: /home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/IVOP/experiments/style_inv_archived_250927-194353/training_state/46100.state # "path to the .state file" or ~
