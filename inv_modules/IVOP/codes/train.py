@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
     print(args.opt)
+    
     opt = option.parse(args.opt, is_train=True)
     print(opt)
     #### distributed training settings

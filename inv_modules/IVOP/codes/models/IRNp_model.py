@@ -148,6 +148,11 @@ class IRNpModel(BaseModel):
             self.uninv_input = self.ref_L.clone()
         else:
             self.uninv_input = None
+        
+        if data.get('text_embedding', None) is not None:
+            self.text_embedding = data['text_embedding'].to(self.device)
+        else:
+            self.text_embedding = None
 
     def gaussian_batch(self, dims):
         return torch.randn(tuple(dims)).to(self.device)

@@ -28,6 +28,61 @@ class DenseBlock(nn.Module):
 
         return x5
 
+class TextScaleShiftDenseBlock(nn.Module):
+    # also use text prompt embedding [B, 77, 768] as input, use FC to project to [B, 10], 2 is alpha and beta for scaling and shifting on conv2d output
+    # then use the alpha and beta to scale and shift the conv2d output
+    def __init__(self, channel_in, channel_out, init='xavier', gc=32, bias=True):
+        super(TextScaleShiftDenseBlock, self).__init__()
+        self.fc = nn.Linear(768, 10)
+        self.conv1 = nn.Conv2d(channel_in, gc, 3, 1, 1, bias=bias)
+        self.conv2 = nn.Conv2d(channel_in + gc, gc, 3, 1, 1, bias=bias)
+        self.conv3 = nn.Conv2d(channel_in + 2 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv4 = nn.Conv2d(channel_in + 3 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv5 = nn.Conv2d(channel_in + 4 * gc, channel_out, 3, 1, 1, bias=bias)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
+        if init == 'xavier':
+            mutil.initialize_weights_xavier([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        else:
+            mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        mutil.initialize_weights(self.conv5, 0)
+
+    def forward(self, x, text_embedding):
+        alpha= self.fc(text_embedding)
+        x1 = self.lrelu(alpha[:, 0] * self.conv1(x) + alpha[:, 1])
+        x2 = self.lrelu(alpha[:, 2] * self.conv2(torch.cat((x, x1), 1)) + alpha[:, 3])
+        x3 = self.lrelu(alpha[:, 4] * self.conv3(torch.cat((x, x1, x2), 1)) + alpha[:, 5])
+        x4 = self.lrelu(alpha[:, 6] * self.conv4(torch.cat((x, x1, x2, x3), 1)) + alpha[:, 7])
+        x5 = alpha[:, 8] * self.conv5(torch.cat((x, x1, x2, x3, x4), 1)) + alpha[:, 9]
+
+        return x5
+
+class TextChannelAttentionDenseBlock(nn.Module):
+    # also use text prompt embedding [B, 77, 768] as input, use FC to project to [B, channel_out], then concat with the conv2d output
+
+    def __init__(self, channel_in, channel_out, init='xavier', gc=32, bias=True):
+        super(TextChannelAttentionDenseBlock, self).__init__()
+        self.fc = nn.Linear(77 * 768, gc)
+        self.conv1 = nn.Conv2d(channel_in + gc, gc, 3, 1, 1, bias=bias)
+        self.conv2 = nn.Conv2d(channel_in + 2 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv3 = nn.Conv2d(channel_in + 3 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv4 = nn.Conv2d(channel_in + 4 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv5 = nn.Conv2d(channel_in + 5 * gc, channel_out, 3, 1, 1, bias=bias)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
+        if init == 'xavier':
+            mutil.initialize_weights_xavier([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        else:
+            mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        mutil.initialize_weights(self.conv5, 0)
+    def forward(self, x, text_embedding):
+        text_embedding = self.fc(text_embedding.view(-1, 77 * 768)) # [B, gc]
+        x1 = self.lrelu(self.conv1(torch.cat((x, text_embedding), 1)))
+        x2 = self.lrelu(self.conv2(torch.cat((x, x1, text_embedding), 1)))
+        x3 = self.lrelu(self.conv3(torch.cat((x, x1, x2, text_embedding), 1)))
+        x4 = self.lrelu(self.conv4(torch.cat((x, x1, x2, x3, text_embedding), 1)))
+        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4, text_embedding), 1))
+        return x5
 
 class ConvBlock(nn.Module):
     def __init__(self, channel_in, channel_out, init='xavier', gc=20, bias=True):
@@ -110,8 +165,7 @@ class AttentionBlock(nn.Module):
         x4 = x4 * self.ca(x4) * self.sa(x4)
         out = self.conv_out(x4)
         return out
-        
-
+  
 def subnet(net_structure, init='xavier'):
     def constructor(channel_in, channel_out):
         if net_structure == 'DBNet':

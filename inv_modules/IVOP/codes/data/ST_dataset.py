@@ -3,7 +3,17 @@ import cv2
 import numpy as np
 from PIL import Image
 from torchvision import transforms
+import torch
 from torch.utils.data import Dataset
+
+
+def get_text_embedding_model(model_name):
+    from cldm.model import create_model, load_state_dict
+    model = create_model(f'./models/{model_name}.yaml').cpu()
+    model_name = "control_v11e_sd15_ip2p-finetuned_1"
+    model.load_state_dict(load_state_dict(f'./models/{model_name}.pth', location=f'cuda:'), strict=False)
+    model = model.to(torch.device('cuda'))
+    return model.get_learned_conditioning
 
 class STDataset(Dataset):
     def __init__(self, dataset_opt):
@@ -12,6 +22,13 @@ class STDataset(Dataset):
         self.data = []
         data_json_file = dataset_opt.get('data_json_file', '/home/hwangem/invSD/invertible_SD_ControlNet/dataset/OmniEdit-Filtered-1.2M_train/prompts.json')
         resolution = dataset_opt.get('resolution',512) #512
+        self.text_embedding_model = dataset_opt.get('text_embedding_model', None)
+        if self.text_embedding_model is not None:
+            # text_embedding_model is a model name
+            self.get_text_embedding_model = get_text_embedding_model(self.text_embedding_model)
+        else:
+            self.get_text_embedding_model = None
+
         with open(data_json_file, 'rt') as f:
             for line in f:
                 self.data.append(json.loads(line))
@@ -40,6 +57,10 @@ class STDataset(Dataset):
         source_fpth = item['source']
         target_fpth = item['target']
         prompt = item['prompt']
+        if self.get_text_embedding_model is not None:
+            text_embedding = self.get_text_embedding_model([prompt])[0]
+        else:
+            text_embedding = None
         # print('source_fpth:', source_fpth)
         # print('target_fpth:', target_fpth)
         # print('prompt:', prompt)
@@ -83,10 +104,20 @@ class STDataset(Dataset):
         #target = target.permute(1, 2, 0)
         #print('source, target shape after permute:')
         #print(source.shape, target.shape)
-        return {
-            'GT':source,
-            'LQ':target,
-            'prompt': prompt,
-            'GT_path': source_fpth,
-            'LQ_path': target_fpth
-        }
+        if text_embedding is not None:
+            return {
+                'GT':source,
+                'LQ':target,
+                'prompt': prompt,
+                'GT_path': source_fpth,
+                'LQ_path': target_fpth,
+                'text_embedding': text_embedding
+            }
+        else:
+            return {
+                'GT':source,
+                'LQ':target,
+                'prompt': prompt,
+                'GT_path': source_fpth,
+                'LQ_path': target_fpth,
+            }
