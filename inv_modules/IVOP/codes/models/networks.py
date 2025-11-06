@@ -3,6 +3,7 @@ import logging
 import models.modules.discriminator_vgg_arch as SRGAN_arch
 from models.modules.Inv_arch import *
 from models.modules.Subnet_constructor import subnet
+from models.modules.decompresser import Decompresser
 import sys
 sys.path.append('/disk1/invSD/invertible_SD_ControlNet')
 from cldm.model import create_model, load_state_dict
@@ -17,7 +18,9 @@ def define_G(opt):
     opt_net = opt['network_G']
     which_model = opt_net['which_model_G']
     subnet_type = which_model['subnet_type']
+    fusion_submodule_type = which_model.get('fusion_submodule_type', subnet_type)
     print("subnet_type:", subnet_type)
+    print("fusion_submodule_type:", fusion_submodule_type)
     non_inv_block_model_name = which_model.get('non_inv_block', None)
     if opt_net['init']:
         init = opt_net['init']
@@ -76,11 +79,12 @@ def define_G(opt):
     print(opt_net['branch_type'])
     if opt_net['branch_type'] == 'dual_branch':
         print("### Using InvRescaleNetD ###")
-        netG = InvRescaleNetD(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block)
+        netG = InvRescaleNetD(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block, fusion_submodule_type=subnet(fusion_submodule_type, init))
     else:
         print("### Using InvRescaleNet ###")
-        netG = InvRescaleNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block)
+        netG = InvRescaleNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num, non_inv_block=non_inv_block, fusion_submodule_type=subnet(fusion_submodule_type, init))
     return netG
+
 
 
 #### Discriminator
@@ -108,3 +112,8 @@ def define_F(opt, use_bn=False):
                                           use_input_norm=True, device=device)
     netF.eval()  # No need to train
     return netF
+
+### Artifact Remover Network
+def define_AR(opt):
+    netAR = Decompresser(channel=3, block_type='CBAM', init='xavier')
+    return netAR

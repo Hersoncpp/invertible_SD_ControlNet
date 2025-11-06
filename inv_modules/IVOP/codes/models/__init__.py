@@ -4,11 +4,13 @@ logger = logging.getLogger('base')
 
 def create_model(opt):
     model = opt['model']
-
+    print("Model name:", model)
     if model == 'IRN':
         from .IRN_model import IRNModel as M
     elif model == 'IRN+':
         from .IRNp_model import IRNpModel as M
+    elif model == 'IRNca':
+        from .IRNca_model import IRNcaModel as M
     else:
         raise NotImplementedError('Model [{:s}] not recognized.'.format(model))
     m = M(opt)

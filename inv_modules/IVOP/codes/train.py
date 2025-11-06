@@ -200,9 +200,7 @@ def main():
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
                     if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
                         sr_img_diff = util.tensor2img(visuals['SR_compressed'])
-                        
                     lr_img = util.tensor2img(visuals['LR'])
-
                     gtl_img = util.tensor2img(visuals['LR_ref'])
 
                     # Save SR images for reference
@@ -219,7 +217,7 @@ def main():
                     # Save LR images
                     save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.jpg'.format(img_name, current_step))
                     util.save_img(lr_img, save_img_path_L)
-
+                    
                     # Save ground truth
                     if current_step == opt['train']['val_freq']:
                         save_img_path_gt = os.path.join(img_dir, '{:s}_GT_{:d}.jpg'.format(img_name, current_step))

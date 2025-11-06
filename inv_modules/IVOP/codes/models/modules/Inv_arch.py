@@ -41,83 +41,45 @@ class InvBlockExp(nn.Module):
 
         return jac / x.shape[0]
 
-class InvBlockTriad(nn.Module):
-    def __init__(self, subnet_constructor, cover_channel_num, secret_channel_num, resolution_channel_num, clamp=1.):
-        super(InvBlockExp, self).__init__()
+class InvBlockAugmented(nn.Module):
+    def __init__(self, subnet_constructor, channel_num, channel_split_num, h=256, w=256, clamp=1.):
+        super(InvBlockAugmented, self).__init__()
 
-        self.cover_channel_num = cover_channel_num
-        self.secret_channel_num = secret_channel_num
-        self.resolution_channel_num = resolution_channel_num
+        self.split_len1 = channel_split_num
+        self.split_len2 = channel_num - channel_split_num
 
         self.clamp = clamp
-        
-        # cs, cr, rs
-        self.F = {"sc": subnet_constructor(secret_channel_num, cover_channel_num),
-                  "cr": subnet_constructor(cover_channel_num, resolution_channel_num),
-                  "rs": subnet_constructor(resolution_channel_num, secret_channel_num)}
-        
-        self.G = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
-                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
-                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
-        
-        self.H = {"cs": subnet_constructor(cover_channel_num, secret_channel_num),
-                  "rc": subnet_constructor(resolution_channel_num, cover_channel_num),
-                  "sr": subnet_constructor(secret_channel_num, resolution_channel_num)}
-        
-    def branch_forward(self, x1, x2, net_type, net_id, rev=False):
-        if net_type == 'F':
-            net = self.F[net_id]
-            if not rev:
-                y2 = x2 + net(x1)
-            else:
-                y2 = x2 - net(x1) 
-        elif net_type == 'G':
-            net = self.G[net_id]
-            if not rev:
-                y2 = x2 + net(x1)
-            else:
-                y2 = x2 - net(x1)
-        elif net_type == 'H':
-            net = self.H[net_id]
-            if not rev:
-                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
-                y2 = x2.mul(torch.exp(s))
-            else:
-                s = self.clamp * (torch.sigmoid(net(x1)) * 2 - 1)
-                y2 = x2.div(torch.exp(s))
-                
-        return x1, y2
 
-    def forward(self, c, s, r, rev=False):
+        self.F = subnet_constructor(self.split_len2, self.split_len1)
+        self.H = subnet_constructor(self.split_len1, self.split_len2)
+        self.A = nn.Parameter(torch.ones(self.split_len2, h, w))
+
+    def forward(self, x, rev=False):
+        x1, x2 = (x.narrow(1, 0, self.split_len1), x.narrow(1, self.split_len1, self.split_len2))
 
         if not rev:
-            c, r = self.branch_forward(c, r, 'F', 'cr', rev)
-            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
-            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
-            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
-            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
-            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
-            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
-            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
-            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
+            x1 = x1 + self.F(x2)
+            self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
+            x2 = x2.mul(torch.exp(self.s))
+            x2 = x2 + self.s * self.A
         else:
-            r, c = self.branch_forward(r, c, 'G', 'rc', rev)
-            s, r = self.branch_forward(s, r, 'G', 'sr', rev)
-            c, s = self.branch_forward(c, s, 'G', 'cs', rev)
-            r, c = self.branch_forward(r, c, 'H', 'rc', rev)
-            s, r = self.branch_forward(s, r, 'H', 'sr', rev)
-            c, s = self.branch_forward(c, s, 'H', 'cs', rev)
-            s, c = self.branch_forward(s, c, 'F', 'sc', rev)
-            r, s = self.branch_forward(r, s, 'F', 'rs', rev)
-            c, r = self.branch_forward(c, r, 'F', 'cr', rev)            
+            self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
+            x2 = x2 - self.s * self.A
+            x2 = x2.div(torch.exp(self.s))
+            x1 = x1 - self.F(x2)
 
-        return c, s, r
+        return torch.cat((x1, x2), 1)
 
     def jacobian(self, x, rev=False):
-        return 1
+        if not rev:
+            jac = torch.sum(self.s)
+        else:
+            jac = -torch.sum(self.s)
+
+        return jac / x.shape[0]
 
 class InvRescaleNet(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNet, self).__init__()
 
         operations = []
@@ -128,11 +90,11 @@ class InvRescaleNet(nn.Module):
         if down_num == 0:
             channel_out = 1
             for j in range(block_num[0]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations.append(b)
 
             for j in range(block_num[1]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations = nn.ModuleList(operations)
@@ -275,15 +237,15 @@ class InvRescaleNetD(nn.Module):
         if down_num == 0:
             channel_out = 1
             for j in range(block_num[0]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations_secret.append(b)
                 
             for j in range(block_num[1]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations_cover.append(b)
 
             for j in range(block_num[2]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations_cover = nn.ModuleList(operations_cover)

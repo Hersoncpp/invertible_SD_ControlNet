@@ -8,6 +8,7 @@
 name: style_inv_10.31.0
 use_tb_logger: False
 model: IRNca
+model: IRNca
 distortion: sr
 scale: 1
 gpu_ids: [0, 1, 2, 3]
@@ -81,8 +82,11 @@ path:
 train:
   lr_G: !!float 2e-4
   lr_AR: !!float 2e-4
+  lr_AR: !!float 2e-4
   beta1: 0.9
   beta2: 0.999
+  beta1_AR: 0.9
+  beta2_AR: 0.999
   beta1_AR: 0.9
   beta2_AR: 0.999
   niter: 50000
@@ -94,6 +98,8 @@ train:
 
   pixel_criterion_forw: l2
   pixel_criterion_back: l2
+  pixel_criterion_recover: l2
+
   pixel_criterion_recover: l2
 
   lpips_net: "vgg"
@@ -111,8 +117,11 @@ train:
   lambda_ssim_back: 1.
   loss_cw: 10.0
   loss_rw: 0.0
+  loss_cw: 10.0
+  loss_rw: 0.0
   
   weight_decay_G: !!float 1e-5
+  weight_decay_AR: !!float 1e-5
   weight_decay_AR: !!float 1e-5
   gradient_clipping: 10
 
