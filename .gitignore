@@ -1,6 +1,6 @@
 .idea/
 runs/
-
+inv_modules/IVOP/codes/options
 training/
 lightning_logs/
 image_log/

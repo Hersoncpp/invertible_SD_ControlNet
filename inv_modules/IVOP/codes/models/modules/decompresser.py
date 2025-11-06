@@ -19,7 +19,7 @@ class SequentialBlock(nn.Module):
         
         
     def forward(self, x):
-        ori = x
+        # ori = x
         for i in range(len(self.subnets)):
             x = self.subnets[i](x)
         return x
@@ -37,7 +37,7 @@ class DifferenceEncoder(nn.Module):
     def __init__(self, channel_in=3, channel_out=3, block_type='CBAM', init='xavier'):
         super(DifferenceEncoder, self).__init__()
         subnet_constructor = subnet(block_type, init)
-        self.net = SequentialBlock(subnet_constructor, channel_in, channel_out, channel_base=32, gc=32, num_layers=16)
+        self.net = SequentialBlock(subnet_constructor, channel_in, channel_out, channel_base=20, gc=20, num_layers=8)
 
     def forward(self, x):
         return self.net(x)

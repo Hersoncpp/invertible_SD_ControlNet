@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from models.modules.attention import CrossAttention
+
 
 class InvBlockExp(nn.Module):
     def __init__(self, subnet_constructor, channel_num, channel_split_num, clamp=1.):
@@ -40,77 +40,45 @@ class InvBlockExp(nn.Module):
 
         return jac / x.shape[0]
 
-class InvBlockTriad(nn.Module):
-    def __init__(self, cover_channel_num, secret_channel_num, resolution_channel_num, sequence=None, clamp=1., init='xavier', gc=24, bias=True):
-        super(InvBlockExp, self).__init__()
+class InvBlockAugmented(nn.Module):
+    def __init__(self, subnet_constructor, channel_num, channel_split_num, h=256, w=256, clamp=1.):
+        super(InvBlockAugmented, self).__init__()
 
-        self.cover_channel_num = cover_channel_num
-        self.secret_channel_num = secret_channel_num
-        self.resolution_channel_num = resolution_channel_num
+        self.split_len1 = channel_split_num
+        self.split_len2 = channel_num - channel_split_num
 
         self.clamp = clamp
-        
-        if sequence is None:
-            self.opt_sequence = [['+', 'rs'], ['*', 'rc'], ['*', 'sc'], ['+', 'rc'], ['+', 'sc']]
-        else:
-            self.opt_sequence = sequence
-        
-        self.subnets = []
-        for subnet_opt in self.opt_sequence:
-            net_type, net_dir = subnet_opt
-            branch_1, branch_2 = net_dir[0], net_dir[1]
-            
-            subnet = CrossAttention(self.which_pass(branch_1)[1], self.which_pass(branch_2)[1], self.which_pass(net_dir)[1], init=init, gc=gc, bias=bias)
-                
-            self.subnets.append(net_type,
-                                (self.which_pass(branch_1)[0], self.which_pass(branch_2)[0], self.which_pass(net_dir)[0]), 
-                                subnet)
-    
-    def which_pass(self, pass_id):
-        if pass_id == 'c' or pass_id == 'rs':
-            return 0, self.cover_channel_num
-        elif pass_id == 's' or pass_id == 'rc':
-            return 1, self.secret_channel_num
-        elif pass_id == 'r' or pass_id == 'sc':
-            return 2, self.resolution_channel_num
-    
-    def branch_forward(self, x1, x2, y, net_type, net, rev=False):
-        if net_type == '+':
-            if not rev:
-                y += net(x1, x2)
-            else:
-                y -= net(x1)
-        elif net_type == 'H':
-            if not rev:
-                s = self.clamp * (torch.sigmoid(net(x1, x2)) * 2 - 1)
-                y = y.mul(torch.exp(s))
-            else:
-                s = self.clamp * (torch.sigmoid(net(x1, x2)) * 2 - 1)
-                y = y.div(torch.exp(s))
-                
-        return x1, x2, y
 
-    def forward(self, c, s, r, rev=False):
-        passes = [c, s, r]
-        
+        self.F = subnet_constructor(self.split_len2, self.split_len1)
+        self.H = subnet_constructor(self.split_len1, self.split_len2)
+        self.A = nn.Parameter(torch.ones(self.split_len2, h, w))
+
+    def forward(self, x, rev=False):
+        x1, x2 = (x.narrow(1, 0, self.split_len1), x.narrow(1, self.split_len1, self.split_len2))
+
         if not rev:
-            for subnet in self.subnets:
-                net_type, direction, net = subnet
-                x1_id, x2_id, y_id = direction
-                passes[x1_id], passes[x2_id], passes[y_id] = self.branch_forward(passes[x1_id], passes[x2_id], passes[y_id], net_type, net, rev)
+            x1 = x1 + self.F(x2)
+            self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
+            x2 = x2.mul(torch.exp(self.s))
+            x2 = x2 + self.s * self.A
         else:
-            for subnet in reversed(self.subnets):
-                net_type, direction, net = subnet
-                x1_id, x2_id, y_id = direction
-                passes[x1_id], passes[x2_id], passes[y_id] = self.branch_forward(passes[x1_id], passes[x2_id], passes[y_id], net_type, net, rev)
+            self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
+            x2 = x2 - self.s * self.A
+            x2 = x2.div(torch.exp(self.s))
+            x1 = x1 - self.F(x2)
 
-        return passes[0], passes[1], passes[2]
+        return torch.cat((x1, x2), 1)
 
-    def jacobian(self, x, rev=False): # not implemented
-        return 0
+    def jacobian(self, x, rev=False):
+        if not rev:
+            jac = torch.sum(self.s)
+        else:
+            jac = -torch.sum(self.s)
+
+        return jac / x.shape[0]
 
 class InvRescaleNet(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNet, self).__init__()
 
         operations = []
@@ -121,11 +89,11 @@ class InvRescaleNet(nn.Module):
         if down_num == 0:
             channel_out = 1
             for j in range(block_num[0]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations.append(b)
 
             for j in range(block_num[1]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations = nn.ModuleList(operations)
@@ -252,7 +220,7 @@ class InvRescaleNet(nn.Module):
             return out_
 
 class InvRescaleNetD(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None, height=256, width=256):
         super(InvRescaleNetD, self).__init__()
 
         operations_cover = []
@@ -264,15 +232,15 @@ class InvRescaleNetD(nn.Module):
         if down_num == 0:
             channel_out = 1
             for j in range(block_num[0]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations_secret.append(b)
                 
             for j in range(block_num[1]):
-                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
+                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
                 operations_cover.append(b)
 
             for j in range(block_num[2]):
-                b = InvBlockExp(subnet_constructor, 6, 3)
+                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations_cover = nn.ModuleList(operations_cover)
@@ -411,27 +379,17 @@ class InvRescaleNetD(nn.Module):
         else:
             return out_
 
-class InvNetCorruptionAware(nn.Module):
-    def __init__(self, 
-                 channel_in=3, 
-                 channel_out=3, 
-                 subnet_constructor=None, 
-                 block_num={}, 
-                 down_num=2, 
-                 non_inv_block = None):
-        
-        super(InvNetCorruptionAware, self).__init__()
-        
-        inv_blocks = []
-        for _ in range(block_num['inv_blocks']):
-            b = InvBlockTriad(subnet_constructor, 3, 3, 1)
-            inv_blocks.append(b)
+class InvNetJPEGAware(nn.Module):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=8, down_num=2, non_inv_block = None):
+        super(InvNetJPEGAware, self).__init__()
+        operations = []
+      
+        # without SR
+        for _ in range(block_num[0]):
+            b = InvBlockTriad(subnet_constructor, 3, 3, 3)
+            operations.append(b)
 
-        self.inv_blocks = nn.ModuleList(inv_blocks)
-        
-        self.get_uninvBranch(channel_in, channel_out, subnet_constructor, block_num, down_num, non_inv_block)
-
-    def get_uninvBranch(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None):
+        self.operations = nn.ModuleList(operations)
         print("#### non_inv_block:", non_inv_block)
         if non_inv_block is None:
             bBranch = [nn.Conv2d(channel_in, channel_in*4, kernel_size=5, stride=1, padding=2, bias=True), nn.LeakyReLU(0.2, inplace=True),
@@ -502,28 +460,38 @@ class InvNetCorruptionAware(nn.Module):
 
             self.uninvBranch = process
 
-    def forward(self, s, r, c=None, rev=False, cal_jacobian=False, prompt=None, uninv_input=None):
+        
+
+    def forward(self, x, r, rev=False, cal_jacobian=False, prompt=None, uninv_input=None):
         # x is tensor of shape [B, C, H, W]
         # if rev == True:
         #     print("in reverse, x shape:", x.shape)
+        out = x
 
-        if not rev:  
+        if not rev:
+                    
             if uninv_input is not None:
-                c = self.uninvBranch(uninv_input)
+                y = self.uninvBranch(uninv_input)
             elif type(self.uninvBranch) == nn.Sequential:
-                c = self.uninvBranch(s)
+                y = self.uninvBranch(x)
             else:
                 input_dict = self.uninvInput.copy()
-                input_dict['input_image'] = s
+                input_dict['input_image'] = x
                 input_dict['prompt'] = prompt
-                c = self.uninvBranch(**input_dict)
+                y = self.uninvBranch(**input_dict)
+
+            # print('out shape:', out.shape, 'out_uninv shape:', out_uninv.shape)
             
-            for op in self.inv_blocks:
-                c, s, r = op.forward(c, s, r, rev)  
+            for op in self.operations:
+                x, y, r = op.forward(x, y, r, rev)  
+            return x, y, r  
              
         else:
-            
-            for op in reversed(self.inv_blocks):
-                c, s, r = op.forward(c, s, r, rev) 
+            for op in reversed(self.operations_final):
+                out = op.forward(out, rev)
         
-        return s, c, r
+            out_ = out[:,:3,:,:]
+            for op in reversed(self.operations):
+                out_ = op.forward(out_, rev)
+        
+        return out_
