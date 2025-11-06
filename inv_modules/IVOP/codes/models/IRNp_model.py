@@ -231,9 +231,9 @@ class IRNpModel(BaseModel):
 
         self.input = self.real_H
         if self.prompt is not None:
-            self.output = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input)
+            self.output = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input, text_embedding=self.text_embedding)
         else:
-            self.output = self.netG(x=self.input, uninv_input=self.uninv_input)
+            self.output = self.netG(x=self.input, uninv_input=self.uninv_input, text_embedding=self.text_embedding)
 
         loss = 0
         zshape = self.output[:, 3:, :, :].shape
@@ -251,8 +251,8 @@ class IRNpModel(BaseModel):
         y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
         y1 = torch.cat((LR_compressed, gaussian_scale * g_batch), dim=1) if compress_aware else None
 
-        self.fake_H = self.netG(x=y0, rev=True)
-        self.fake_H_compressed = self.netG(x=y1, rev=True) if compress_aware else None
+        self.fake_H = self.netG(x=y0, rev=True, text_embedding=self.text_embedding)
+        self.fake_H_compressed = self.netG(x=y1, rev=True, text_embedding=self.text_embedding) if compress_aware else None
 
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
             l_forw= self.loss_forward(self.output, self.ref_L.detach(), self.output[:, 3:, :, :])

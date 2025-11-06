@@ -118,5 +118,9 @@ def subnet(net_structure, init='xavier'):
             return ConvBlock(channel_in, channel_out, init, gc, bias)
         if net_structure == 'CBAM':
             return SelfAttention(channel_in, channel_out, init, gc, bias)
+        if net_structure == 'TextCADB':
+            return TextChannelAttentionDenseBlock(channel_in, channel_out, init, gc, bias)
+        if net_structure == 'TextSSDB':
+            return TextScaleShiftDenseBlock(channel_in, channel_out, init, gc, bias)
 
     return constructor

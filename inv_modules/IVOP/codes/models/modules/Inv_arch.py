@@ -23,13 +23,23 @@ class InvBlockExp(nn.Module):
         x1, x2 = (x.narrow(1, 0, self.split_len1), x.narrow(1, self.split_len1, self.split_len2))
 
         if not rev:
-            y1 = x1 + self.F(x2)
-            self.s = self.clamp * (torch.sigmoid(self.H(y1)) * 2 - 1)
-            y2 = x2.mul(torch.exp(self.s)) + self.G(y1)
+            if text_embedding is not None:
+                y1 = x1 + self.F(x2, text_embedding)
+                self.s = self.clamp * (torch.sigmoid(self.H(y1, text_embedding)) * 2 - 1)
+                y2 = x2.mul(torch.exp(self.s)) + self.G(y1, text_embedding)
+            else:
+                y1 = x1 + self.F(x2)
+                self.s = self.clamp * (torch.sigmoid(self.H(y1)) * 2 - 1)
+                y2 = x2.mul(torch.exp(self.s)) + self.G(y1)
         else:
-            self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
-            y2 = (x2 - self.G(x1)).div(torch.exp(self.s))
-            y1 = x1 - self.F(y2)
+            if text_embedding is not None:
+                self.s = self.clamp * (torch.sigmoid(self.H(x1, text_embedding)) * 2 - 1)
+                y2 = (x2 - self.G(x1, text_embedding)).div(torch.exp(self.s))
+                y1 = x1 - self.F(y2, text_embedding)
+            else:
+                self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
+                y2 = (x2 - self.G(x1)).div(torch.exp(self.s))
+                y1 = x1 - self.F(y2)
 
         return torch.cat((y1, y2), 1)
 
@@ -80,6 +90,7 @@ class InvBlockAugmented(nn.Module):
 
 class InvRescaleNet(nn.Module):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNet, self).__init__()
 
         operations = []
@@ -94,6 +105,7 @@ class InvRescaleNet(nn.Module):
                 operations.append(b)
 
             for j in range(block_num[1]):
+                b = InvBlockExp(fusion_submodule_type, 6, 3)
                 b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
@@ -223,6 +235,7 @@ class InvRescaleNet(nn.Module):
             return out_
 
 class InvRescaleNetD(nn.Module):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, save_intermediate=False):
         super(InvRescaleNetD, self).__init__()
 
@@ -245,6 +258,7 @@ class InvRescaleNetD(nn.Module):
                 operations_cover.append(b)
 
             for j in range(block_num[2]):
+                b = InvBlockExp(fusion_submodule_type, 6, 3)
                 b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
@@ -323,7 +337,7 @@ class InvRescaleNetD(nn.Module):
 
         
 
-    def forward(self, x, rev=False, cal_jacobian=False, prompt=None, uninv_input=None):
+    def forward(self, x, rev=False, cal_jacobian=False, prompt=None, uninv_input=None, text_embedding=None):
         # x is tensor of shape [B, C, H, W]
         # if rev == True:
         #     print("in reverse, x shape:", x.shape)
