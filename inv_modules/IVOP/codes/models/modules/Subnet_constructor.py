@@ -78,7 +78,14 @@ class TextChannelAttentionDenseBlock(nn.Module):
         mutil.initialize_weights(self.conv5, 0)
     def forward(self, x, text_embedding):
         text_embedding = self.fc(text_embedding.view(-1, 77 * 768)) # [B, gc]
-        x1 = self.lrelu(self.conv1(torch.cat((x, text_embedding), 1)))
+        # expand to [B, gc, H, W]
+        text_embedding = text_embedding.unsqueeze(2).unsqueeze(3) # [B, gc, 1, 1]
+        text_embedding = text_embedding.expand(-1, -1, x.size(2), x.size(3)) # [B, gc, H, W]
+        try:
+            x1 = self.lrelu(self.conv1(torch.cat((x, text_embedding), 1)))
+        except:
+            print(f"x shape: {x.shape}, text_embedding shape: {text_embedding.shape}")
+            raise ValueError("Shape mismatch in TextChannelAttentionDenseBlock")
         x2 = self.lrelu(self.conv2(torch.cat((x, x1, text_embedding), 1)))
         x3 = self.lrelu(self.conv3(torch.cat((x, x1, x2, text_embedding), 1)))
         x4 = self.lrelu(self.conv4(torch.cat((x, x1, x2, x3, text_embedding), 1)))
@@ -118,9 +125,9 @@ def subnet(net_structure, init='xavier'):
             return ConvBlock(channel_in, channel_out, init, gc, bias)
         if net_structure == 'CBAM':
             return SelfAttention(channel_in, channel_out, init, gc, bias)
-        if net_structure == 'TextCADB':
+        if net_structure == 'TextChannelAttentionDenseBlock':
             return TextChannelAttentionDenseBlock(channel_in, channel_out, init, gc, bias)
-        if net_structure == 'TextSSDB':
+        if net_structure == 'TextScaleShiftDenseBlock':
             return TextScaleShiftDenseBlock(channel_in, channel_out, init, gc, bias)
 
     return constructor

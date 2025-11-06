@@ -19,7 +19,7 @@ class InvBlockExp(nn.Module):
         self.H = subnet_constructor(self.split_len1, self.split_len2)
         
 
-    def forward(self, x, rev=False):
+    def forward(self, x, rev=False, text_embedding=None):
         x1, x2 = (x.narrow(1, 0, self.split_len1), x.narrow(1, self.split_len1, self.split_len2))
 
         if not rev:
@@ -89,7 +89,6 @@ class InvBlockAugmented(nn.Module):
         return jac / x.shape[0]
 
 class InvRescaleNet(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
     def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
         super(InvRescaleNet, self).__init__()
 
@@ -235,8 +234,7 @@ class InvRescaleNet(nn.Module):
             return out_
 
 class InvRescaleNetD(nn.Module):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None):
-    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, save_intermediate=False):
+    def __init__(self, channel_in=3, channel_out=3, subnet_constructor=None, block_num=[], down_num=2, non_inv_block = None, fusion_submodule_type = None, save_intermediate=False):
         super(InvRescaleNetD, self).__init__()
 
         self.save_intermediate = save_intermediate
@@ -250,16 +248,15 @@ class InvRescaleNetD(nn.Module):
         if down_num == 0:
             channel_out = 1
             for j in range(block_num[0]):
-                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
+                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
                 operations_secret.append(b)
                 
             for j in range(block_num[1]):
-                b = InvBlockAugmented(subnet_constructor, current_channel, channel_out)
+                b = InvBlockExp(subnet_constructor, current_channel, channel_out)
                 operations_cover.append(b)
 
             for j in range(block_num[2]):
                 b = InvBlockExp(fusion_submodule_type, 6, 3)
-                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations_cover = nn.ModuleList(operations_cover)
@@ -343,7 +340,6 @@ class InvRescaleNetD(nn.Module):
         #     print("in reverse, x shape:", x.shape)
         out = x
         jacobian = 0
-
         if not rev: 
             for op in self.operations_secret:
                 out = op.forward(out, rev)
@@ -377,7 +373,7 @@ class InvRescaleNetD(nn.Module):
             out_ =  torch.cat((out, out_uninv ), 1)   
             
             for op in self.operations_final:
-                out_ = op.forward(out_, rev)
+                out_ = op.forward(out_, rev, text_embedding)
                 if self.save_intermediate:
                     if self.intermediate_outputs.get('forward_operations_final') is None:
                         self.intermediate_outputs['forward_operations_final'] = []
@@ -388,7 +384,7 @@ class InvRescaleNetD(nn.Module):
              
         else:
             for op in reversed(self.operations_final):
-                out = op.forward(out, rev)
+                out = op.forward(out, rev, text_embedding)
                 if self.save_intermediate:
                     if self.intermediate_outputs.get('reverse_operations_final') is None:
                         self.intermediate_outputs['reverse_operations_final'] = []

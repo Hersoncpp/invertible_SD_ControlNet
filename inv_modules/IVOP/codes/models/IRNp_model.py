@@ -151,6 +151,7 @@ class IRNpModel(BaseModel):
         
         if data.get('text_embedding', None) is not None:
             self.text_embedding = data['text_embedding'].to(self.device)
+            # print(f"Text embedding dimension: {self.text_embedding.shape}")
         else:
             self.text_embedding = None
 

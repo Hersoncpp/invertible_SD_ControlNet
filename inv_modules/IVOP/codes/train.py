@@ -14,6 +14,7 @@ from utils import util
 from data import create_dataloader, create_dataset
 from models import create_model
 
+torch.multiprocessing.set_start_method('spawn', force=True)
 
 def init_dist(backend='nccl', **kwargs):
     ''' initialization for distributed training'''

@@ -5,14 +5,19 @@ from PIL import Image
 from torchvision import transforms
 import torch
 from torch.utils.data import Dataset
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath("/home/hwangem/invSD/invertible_SD_ControlNet"))
 
 def get_text_embedding_model(model_name):
     from cldm.model import create_model, load_state_dict
     model = create_model(f'./models/{model_name}.yaml').cpu()
     model_name = "control_v11e_sd15_ip2p-finetuned_1"
-    model.load_state_dict(load_state_dict(f'./models/{model_name}.pth', location=f'cuda:'), strict=False)
+    model.load_state_dict(load_state_dict(f'./models/{model_name}.pth', location=f'cuda'), strict=False)
     model = model.to(torch.device('cuda'))
+    # freeze the model
+    for param in model.parameters():
+        param.requires_grad = False
     return model.get_learned_conditioning
 
 class STDataset(Dataset):
