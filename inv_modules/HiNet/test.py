@@ -105,7 +105,7 @@ net.eval()
 dwt = common.DWT()
 iwt = common.IWT()
 quantization_fun = Quantization()
-
+compress_flag = True
 with torch.no_grad():
     for i, data in tqdm(enumerate(datasets.testloader)):
         # data = data.to(device)
@@ -137,42 +137,42 @@ with torch.no_grad():
             # print("After quantization:")
             # print("max min of steg_img:", steg_img.max(), steg_img.min())
             # print(steg_img)
+        if compress_flag:
+            tmp_step_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp.jpg"
+            # tmp_tor_step_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp_tor.jpg"
+            # tmp_tor_trans_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp_trans.jpg"
+            # torchvision.utils.save_image(steg_img, tmp_tor_step_img_path)
 
-        tmp_step_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp.jpg"
-        # tmp_tor_step_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp_tor.jpg"
-        # tmp_tor_trans_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/tmp_trans.jpg"
-        # torchvision.utils.save_image(steg_img, tmp_tor_step_img_path)
-
-        # 输出steg_img的形状:
-        # print("steg_img shape:", steg_img.shape)
-        # 存储为jpg格式
-        def transform_steg_img(steg_img):
-            # steg_min, steg_max = steg_img.min(), steg_img.max()
-            # # normalize to 0-1 by min-max
-            # return (steg_img - steg_min) / (steg_max - steg_min)
-            return torch.clamp(steg_img, 0, 1)
-        # clamped_steg_img = torch.clamp(steg_img, 0, 1)
-        # torchvision.utils.save_image(clamped_steg_img, tmp_tor_trans_img_path)
-        # img_steg_tor = cv2.imread(tmp_tor_step_img_path)
-        # img_steg_trans = cv2.imread(tmp_tor_trans_img_path)
-        # diff_img = abs(img_steg_trans - img_steg_tor)
-        # diff_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/diff.jpg"
-        # cv2.imwrite(diff_img_path, diff_img)
-        # print("max diff:", diff_img.max())
-        img_np = transform_steg_img(steg_img).squeeze().cpu().numpy().transpose(1, 2, 0) * 255.
-        img_np = img_np.astype(np.uint8)
-        img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(tmp_step_img_path, img_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
-        # cv2.imwrite(tmp_step_img_path, img_bgr)
-        # # 重新读取jpg格式
-        # if quantize_flag is not True:
-            # img_bgr = cv2.imread(tmp_tor_step_img_path)
-        img_bgr = cv2.imread(tmp_step_img_path)
-        steg_img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float32)
-        steg_img = steg_img.transpose(2, 0, 1) / 255.0
-        steg_img = torch.from_numpy(steg_img).unsqueeze(0).float().to(device)
-        # print("max min of steg_img:", steg_img.max(), steg_img.min())
-        # print(steg_img)
+            # 输出steg_img的形状:
+            # print("steg_img shape:", steg_img.shape)
+            # 存储为jpg格式
+            def transform_steg_img(steg_img):
+                # steg_min, steg_max = steg_img.min(), steg_img.max()
+                # # normalize to 0-1 by min-max
+                # return (steg_img - steg_min) / (steg_max - steg_min)
+                return torch.clamp(steg_img, 0, 1)
+            # clamped_steg_img = torch.clamp(steg_img, 0, 1)
+            # torchvision.utils.save_image(clamped_steg_img, tmp_tor_trans_img_path)
+            # img_steg_tor = cv2.imread(tmp_tor_step_img_path)
+            # img_steg_trans = cv2.imread(tmp_tor_trans_img_path)
+            # diff_img = abs(img_steg_trans - img_steg_tor)
+            # diff_img_path = "/home/hesong/disk1/DF_INV/code/ControlNet-v1-1-nightly/inv_modules/HiNet/image/diff.jpg"
+            # cv2.imwrite(diff_img_path, diff_img)
+            # print("max diff:", diff_img.max())
+            img_np = transform_steg_img(steg_img).squeeze().cpu().numpy().transpose(1, 2, 0) * 255.
+            img_np = img_np.astype(np.uint8)
+            img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(tmp_step_img_path, img_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+            # cv2.imwrite(tmp_step_img_path, img_bgr)
+            # # 重新读取jpg格式
+            # if quantize_flag is not True:
+                # img_bgr = cv2.imread(tmp_tor_step_img_path)
+            img_bgr = cv2.imread(tmp_step_img_path)
+            steg_img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float32)
+            steg_img = steg_img.transpose(2, 0, 1) / 255.0
+            steg_img = torch.from_numpy(steg_img).unsqueeze(0).float().to(device)
+            # print("max min of steg_img:", steg_img.max(), steg_img.min())
+            # print(steg_img)
         output_steg = dwt(steg_img)
 ##########################
         backward_z = gauss_noise(output_z.shape)
@@ -181,18 +181,18 @@ with torch.no_grad():
         #   backward:   #
         #################
         output_rev = torch.cat((output_steg, backward_z), 1)
-        bacward_img = net(output_rev, rev=True)
+        bacward_img = net(output_rev, True)
         secret_rev = bacward_img.narrow(1, 4 * c.channels_in, bacward_img.shape[1] - 4 * c.channels_in)
         secret_rev = iwt(secret_rev)
         cover_rev = bacward_img.narrow(1, 0, 4 * c.channels_in)
         cover_rev = iwt(cover_rev)
         resi_cover = (steg_img - cover) * 20
         resi_secret = (secret_rev - secret) * 20
-
-        torchvision.utils.save_image(cover, c.IMAGE_PATH_cover + '%.5d.jpg' % i)
-        torchvision.utils.save_image(secret, c.IMAGE_PATH_secret + '%.5d.jpg' % i)
-        torchvision.utils.save_image(steg_img, c.IMAGE_PATH_steg + '%.5d.jpg' % i)
-        torchvision.utils.save_image(secret_rev, c.IMAGE_PATH_secret_rev + '%.5d.jpg' % i)
+        img_type = 'png'   
+        torchvision.utils.save_image(cover, c.IMAGE_PATH_cover + f'{c.save_suffix}_{i:05d}.' + img_type)
+        torchvision.utils.save_image(secret, c.IMAGE_PATH_secret + f'{c.save_suffix}_{i:05d}.' + img_type)
+        torchvision.utils.save_image(steg_img, c.IMAGE_PATH_steg + f'{c.save_suffix}_{i:05d}.' + img_type)
+        torchvision.utils.save_image(secret_rev, c.IMAGE_PATH_secret_rev + f'{c.save_suffix}_{i:05d}.' + img_type)
         # break
 
 

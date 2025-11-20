@@ -246,3 +246,10 @@ class IRNModel(BaseModel):
 
     def save(self, iter_label):
         self.save_network(self.netG, 'G', iter_label)
+        
+    def get_intermediate_outputs(self):
+        if self.intermediate_outputs is not None:
+            return self.intermediate_outputs
+        else:
+            return None
+

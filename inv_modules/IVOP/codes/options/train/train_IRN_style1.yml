@@ -5,7 +5,7 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_11.5.1
+name: style_inv_11.12.1
 use_tb_logger: False
 model: IRNca
 distortion: sr
@@ -60,8 +60,8 @@ network_G:
       non_inv_block: "Identity" #"control_v11e_sd15_ip2p-finetuned"
   in_nc: 3
   out_nc: 3
-  branch_type: dual_branch
-  block_num: [4, 4, 8] #8
+  branch_type: dual_branch_ed
+  block_num: [6, 3, 12] #8
   scale: 1
   init: xavier
 
@@ -104,12 +104,12 @@ train:
 
   lambda_fit_forw: 1.
   lambda_rec_back: 4.
-  lambda_ce_forw: 0
+  lambda_ce_forw: 0.1
   lambda_lpips_forw: 1.
   lambda_lpips_back: 0.
   lambda_ssim_forw: 0.
   lambda_ssim_back: 1.
-  loss_cw: 10.0
+  loss_cw: 8.0
   loss_rw: 0.0
   
   weight_decay_G: !!float 1e-5

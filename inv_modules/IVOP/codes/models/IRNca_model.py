@@ -36,6 +36,7 @@ class IRNcaModel(BaseModel):
         self.rw = train_opt['loss_rw']
         print(f"cw: {self.cw}, rw: {self.rw}")
         
+        self.intermediate_outputs = None
         self.netG = networks.define_G(opt).to(self.device)
         self.netAR = networks.define_AR(opt).to(self.device)   
         if opt['dist']:
@@ -353,7 +354,7 @@ class IRNcaModel(BaseModel):
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
         self.netG.train()
 
-    def test(self, compress_flag=False):
+    def test(self, compress_flag=False, save_intermediate=False):
         Lshape = self.ref_L.shape
 
         input_dim = Lshape[1]
@@ -369,6 +370,9 @@ class IRNcaModel(BaseModel):
             gaussian_scale = self.test_opt['gaussian_scale']
 
         self.netG.eval()
+        self.netG.module.save_intermediate = save_intermediate
+        if save_intermediate:
+            self.netG.module.intermediate_outputs = {}
         self.netAR.eval()
         with torch.no_grad():
             if self.prompt is not None:
@@ -402,6 +406,9 @@ class IRNcaModel(BaseModel):
                     y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, z_ar), dim=1)
                     self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :]
 
+        self.netG.module.save_intermediate = False
+        if save_intermediate:
+            self.intermediate_outputs = self.netG.module.intermediate_outputs.copy()
         self.netG.train()
         self.netAR.train()
 
@@ -476,3 +483,9 @@ class IRNcaModel(BaseModel):
     def save(self, iter_label):
         self.save_network(self.netG, 'G', iter_label)
         # self.save_network(self.netD, 'D', iter_label)
+        
+    def get_intermediate_outputs(self):
+        if self.intermediate_outputs is not None:
+            return self.intermediate_outputs
+        else:
+            return None

@@ -56,7 +56,7 @@ class ConvBlock(nn.Module):
         return x5
 
 def subnet(net_structure, init='xavier'):
-    def constructor(channel_in, channel_out, gc=20, bias=True):
+    def constructor(channel_in, channel_out, gc=25, bias=True):
         if net_structure == 'DBNet':
             return DenseBlock(channel_in, channel_out, init, gc, bias)
         if net_structure == 'ConvNet':
