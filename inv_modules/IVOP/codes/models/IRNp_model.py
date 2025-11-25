@@ -353,9 +353,9 @@ class IRNpModel(BaseModel):
             self.netG.module.intermediate_outputs = {}
         with torch.no_grad():
             if self.prompt is not None:
-                self.forw_L = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input)[:, :3, :, :]
+                self.forw_L = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input, text_embedding=self.text_embedding)[:, :3, :, :]
             else:
-                self.forw_L = self.netG(x=self.input, uninv_input=self.uninv_input)[:, :3, :, :]
+                self.forw_L = self.netG(x=self.input, uninv_input=self.uninv_input, text_embedding=self.text_embedding)[:, :3, :, :]
             self.forw_L = self.Quantization(self.forw_L)
             if compress_flag:
                 # print('using jpg compression')
@@ -389,9 +389,9 @@ class IRNpModel(BaseModel):
             else:
                 y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
             
-            self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
+            self.fake_H = self.netG(x=y_forw, rev=True, text_embedding=self.text_embedding)[:, :3, :, :]
             if compress_flag:
-                self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :] if self.compress_mode == 'diffjpeg' else None
+                self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True, text_embedding=self.text_embedding)[:, :3, :, :] if self.compress_mode == 'diffjpeg' else None
 
         self.netG.module.save_intermediate = False
         self.netG.train()
@@ -403,7 +403,7 @@ class IRNpModel(BaseModel):
         self.netG.eval()
         with torch.no_grad():
             LR_img = self.netG(x=HR_img)[:, :3, :, :]
-            LR_img = self.Quantization(self.forw_L)
+            LR_img = self.Quantization(LR_img)
         self.netG.train()
 
         return LR_img
