@@ -60,10 +60,9 @@ class TextScaleShiftDenseBlock(nn.Module):
 
 class TextChannelAttentionDenseBlock(nn.Module):
     # also use text prompt embedding [B, 77, 768] as input, use FC to project to [B, channel_out], then concat with the conv2d output
-
     def __init__(self, channel_in, channel_out, init='xavier', gc=32, bias=True):
         super(TextChannelAttentionDenseBlock, self).__init__()
-        self.fc = nn.Linear(77 * 768, gc)
+        self.fc = nn.Linear(768, gc)
         self.conv1 = nn.Conv2d(channel_in + gc, gc, 3, 1, 1, bias=bias)
         self.conv2 = nn.Conv2d(channel_in + 2 * gc, gc, 3, 1, 1, bias=bias)
         self.conv3 = nn.Conv2d(channel_in + 3 * gc, gc, 3, 1, 1, bias=bias)
@@ -77,7 +76,8 @@ class TextChannelAttentionDenseBlock(nn.Module):
             mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
         mutil.initialize_weights(self.conv5, 0)
     def forward(self, x, text_embedding):
-        text_embedding = self.fc(text_embedding.view(-1, 77 * 768)) # [B, gc]
+        # embedding shape [B, 768]
+        text_embedding = self.fc(text_embedding) # [B, gc]
         # expand to [B, gc, H, W]
         text_embedding = text_embedding.unsqueeze(2).unsqueeze(3) # [B, gc, 1, 1]
         text_embedding = text_embedding.expand(-1, -1, x.size(2), x.size(3)) # [B, gc, H, W]
@@ -90,6 +90,42 @@ class TextChannelAttentionDenseBlock(nn.Module):
         x3 = self.lrelu(self.conv3(torch.cat((x, x1, x2, text_embedding), 1)))
         x4 = self.lrelu(self.conv4(torch.cat((x, x1, x2, x3, text_embedding), 1)))
         x5 = self.conv5(torch.cat((x, x1, x2, x3, x4, text_embedding), 1))
+        return x5
+
+
+class TextChannelAttentionDenseBlock1(nn.Module):
+    # also use text prompt embedding [B, 77, 768] as input, use FC to project to [B, channel_out], then concat with the conv2d output
+
+    def __init__(self, channel_in, channel_out, init='xavier', gc=32, bias=True):
+        super(TextChannelAttentionDenseBlock1, self).__init__()
+        self.fc = nn.Linear(768, gc)
+        self.conv1 = nn.Conv2d(channel_in + gc, gc, 3, 1, 1, bias=bias)
+        self.conv2 = nn.Conv2d(channel_in + 1 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv3 = nn.Conv2d(channel_in + 2 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv4 = nn.Conv2d(channel_in + 3 * gc, gc, 3, 1, 1, bias=bias)
+        self.conv5 = nn.Conv2d(channel_in + 4 * gc, channel_out, 3, 1, 1, bias=bias)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
+        if init == 'xavier':
+            mutil.initialize_weights_xavier([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        else:
+            mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv4], 0.1)
+        mutil.initialize_weights(self.conv5, 0)
+    def forward(self, x, text_embedding):
+        # embedding shape [B, 768]
+        text_embedding = self.fc(text_embedding) # [B, gc]
+        # expand to [B, gc, H, W]
+        text_embedding = text_embedding.unsqueeze(2).unsqueeze(3) # [B, gc, 1, 1]
+        text_embedding = text_embedding.expand(-1, -1, x.size(2), x.size(3)) # [B, gc, H, W]
+        try:
+            x1 = self.lrelu(self.conv1(torch.cat((x, text_embedding), 1)))
+        except:
+            print(f"x shape: {x.shape}, text_embedding shape: {text_embedding.shape}")
+            raise ValueError("Shape mismatch in TextChannelAttentionDenseBlock1")
+        x2 = self.lrelu(self.conv2(torch.cat((x, x1), 1)))
+        x3 = self.lrelu(self.conv3(torch.cat((x, x1, x2), 1)))
+        x4 = self.lrelu(self.conv4(torch.cat((x, x1, x2, x3), 1)))
+        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
         return x5
 
 class ConvBlock(nn.Module):
@@ -127,6 +163,8 @@ def subnet(net_structure, init='xavier'):
             return SelfAttention(channel_in, channel_out, init, gc, bias)
         if net_structure == 'TextChannelAttentionDenseBlock':
             return TextChannelAttentionDenseBlock(channel_in, channel_out, init, gc, bias)
+        if net_structure == 'TextChannelAttentionDenseBlock1':
+            return TextChannelAttentionDenseBlock1(channel_in, channel_out, init, gc, bias)
         if net_structure == 'TextScaleShiftDenseBlock':
             return TextScaleShiftDenseBlock(channel_in, channel_out, init, gc, bias)
 

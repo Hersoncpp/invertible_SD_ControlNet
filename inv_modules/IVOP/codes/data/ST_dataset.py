@@ -71,6 +71,10 @@ class STDataset(Dataset):
         prompt = item['prompt']
         if self.get_text_embedding_model is not None:
             text_embedding = self.get_text_embedding_model([prompt])[0]
+            # get the last token of the text_embedding
+            text_embedding = text_embedding[-1, :]
+            # reshape from [1, 768] to [768]
+            text_embedding = text_embedding.reshape(768).detach().cpu().numpy()
         else:
             text_embedding = None
         # print('source_fpth:', source_fpth)
@@ -93,9 +97,9 @@ class STDataset(Dataset):
         source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB).copy()
         target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB).copy()
 
-
-        source = self.conditioning_image_transform(source)
-        target = self.image_transform(target)
+        # move to cpu
+        source = self.conditioning_image_transform(source).to(torch.device('cpu'))
+        target = self.image_transform(target).to(torch.device('cpu'))
         # print("#######################################source--mid############################################")
         # print(source.shape)
         # print(source)
