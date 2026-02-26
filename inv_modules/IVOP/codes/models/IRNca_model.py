@@ -15,6 +15,7 @@ import lpips
 import utils.util as util
 import cv2
 import numpy as np
+import torchvision.transforms as T
 logger = logging.getLogger('base')
 
 class IRNcaModel(BaseModel):
@@ -32,8 +33,8 @@ class IRNcaModel(BaseModel):
         self.train_opt = train_opt
         self.test_opt = test_opt
         self.prompt = None
-        self.cw = train_opt['loss_cw']
-        self.rw = train_opt['loss_rw']
+        self.cw = train_opt['loss_cw'] if train_opt is not None else 1
+        self.rw = train_opt['loss_rw'] if train_opt is not None else 0
         print(f"cw: {self.cw}, rw: {self.rw}")
         
         self.intermediate_outputs = None
@@ -56,7 +57,7 @@ class IRNcaModel(BaseModel):
         if opt['compress_mode'] == 'diffjpeg' and opt['compress_flag']:
             self.compress_mode = 'diffjpeg'
             print("Using diffjpeg compression")
-            r = opt['datasets']['train']['resolution']
+            r = opt['datasets']['train']['resolution'] if self.is_train else 256
             self.Compression = DiffJPEG(r, r, quality=95).to(self.device)
         else:
             self.compress_mode = 'regjpeg'
@@ -149,13 +150,30 @@ class IRNcaModel(BaseModel):
 
             self.log_dict = OrderedDict()
 
-    def feed_data(self, data, identity = False):
+    def feed_data(self, data, identity = False, transform = False):
         self.ref_L = data['LQ'].to(self.device)  # LQ
         self.real_H = data['GT'].to(self.device)  # GT
+
+        if transform:
+            # Define the transformations
+            transform_ops = T.Compose([
+                T.RandomHorizontalFlip(p=0.5),
+                T.RandomVerticalFlip(p=0.5),
+                T.RandomRotation(degrees=(0, 30))
+            ])
+
+            seed = torch.randint(0, 2**32, (1,)).item()  # Generate a random seed
+            torch.manual_seed(seed)  # Set the seed for deterministic transformation
+            self.ref_L = transform_ops(self.ref_L)
+
+            torch.manual_seed(seed)  # Reset the seed for the same transformation
+            self.real_H = transform_ops(self.real_H)
+        
         if data.get('prompt', None) is not None:
             self.prompt = data['prompt']
         else:
             self.prompt = None
+        
         
         if identity:
             self.uninv_input = self.ref_L.clone()
@@ -268,7 +286,7 @@ class IRNcaModel(BaseModel):
         
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
         g_batch = self.gaussian_batch(LR.shape)
-        y0 = torch.cat((LR, self.zero_batch(LR.shape)), dim=1)
+        y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
         y1 = torch.cat((LR_corrupted, z_ar), dim=1)
         
         self.fake_H = self.netG(x=y0, rev=True)
@@ -299,6 +317,7 @@ class IRNcaModel(BaseModel):
                 nn.utils.clip_grad_norm_(self.netG.parameters(), self.train_opt['gradient_clipping'])
 
             self.optimizer_G.step()
+            self.optimizer_AR.step()
 
         # D
         # for p in self.netD.parameters():

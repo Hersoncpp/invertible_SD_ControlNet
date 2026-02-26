@@ -37,13 +37,18 @@ class SelfAttention(nn.Module):
     def __init__(self, channel_in, channel_out, init='xavier', gc=24, bias=True):
         super(SelfAttention, self).__init__()
         self.conv1 = nn.Conv2d(channel_in, gc, 3, 1, 1, bias=bias)
-        self.conv2 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
-        self.conv3 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
-        self.conv4 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
-        self.skip = nn.Conv2d(channel_in, channel_out, 1, 1, 0, bias=bias)
-        self.ca = ChannelAttention(gc, bias)
+        self.conv2 = nn.Conv2d(gc, gc * 2, 3, 1, 1, bias=bias)
+        self.conv3 = nn.Conv2d(gc * 2, gc * 2, 3, 1, 1, bias=bias)
+        
+        self.skip1 = nn.Conv2d(channel_in, gc, 1, 1, 0, bias=bias)
+        self.skip2 = nn.Conv2d(gc, gc, 1, 1, 0, bias=bias)
+        self.skip3 = nn.Conv2d(gc, channel_out, 1, 1, 0, bias=bias)
+        
+        self.ca = ChannelAttention(gc * 2, bias)
         self.sa = SpatialAttention(bias=bias)
-        self.conv_out = nn.Conv2d(gc, channel_out, 3, 1, 1, bias=bias)
+        
+        self.conv_out = nn.Conv2d(gc * 2, channel_out, 3, 1, 1, bias=bias)
+        
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
         if init == 'xavier':
@@ -55,10 +60,16 @@ class SelfAttention(nn.Module):
         x1 = self.lrelu(self.conv1(x))
         x2 = self.lrelu(self.conv2(x1))
         x3 = self.lrelu(self.conv3(x2))
-        x4 = self.lrelu(self.conv4(x3))
         
-        x4 = x4 * self.ca(x4) * self.sa(x4)
-        out = self.conv_out(x4) + self.skip(x)
+        attn = x3 * self.ca(x3) * self.sa(x3)
+        
+        y = self.conv_out(attn)
+        
+        s1 = self.skip1(x)
+        s2 = self.skip2(s1)
+        s3 = self.skip3(s2)
+        
+        out = y + s3
         return out
     
 class CrossChannelAttention(nn.Module):

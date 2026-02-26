@@ -157,6 +157,7 @@ def main():
             if current_step > total_iters:
                 break
             #### training
+            # model.feed_data(train_data, identity=opt['identity'], transform=True)
             model.feed_data(train_data, identity=opt['identity'])
             model.optimize_parameters(current_step, compress_aware=opt['compress_flag'])
 

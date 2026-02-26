@@ -56,11 +56,12 @@ for test_loader in test_loaders:
 
     start = time.time()
     for data in test_loader:
+        print("data loaded")
         model.feed_data(data, identity=True)
         img_path = data['GT_path'][0]
         img_name = osp.splitext(osp.basename(img_path))[0]
 
-        model.test(jpg_compress=False)
+        model.test(compress_flag=True, save_intermediate=True)
         # model.predict()
         visuals = model.get_current_visuals()
 
