@@ -11,6 +11,7 @@ from models.modules.loss import GANLoss, ReconstructionLoss, SSIMLoss
 from models.modules.Quantization import Quantization
 from models.modules.Jpeg_Compress import Jpeg_Compress_Layer
 from models.modules.DiffJPEG.DiffJPEG import DiffJPEG
+from models.modules.Subnet_constructor import TextChannelAttentionDenseBlock, DenseBlock, TextChannelAttentionDenseBlock1
 import lpips
 import utils.util as util
 import cv2
@@ -36,7 +37,20 @@ class IRNpModel(BaseModel):
         self.cw = train_opt['loss_cw']
         self.rw = train_opt['loss_rw']
         print(f"cw: {self.cw}, rw: {self.rw}")
-        
+        self.noise_method = opt.get('noise_method', "Sample")
+        g_batch_constructor = opt.get('g_batch_constructor', None) # 'DenseNet' or 'TextChannelAttentionDenseBlock' or 'TextChannelAttentionDenseBlock1'
+        if g_batch_constructor == 'DenseNet':
+            print(f"Using DenseNet as g_batch_constructor")
+            self.g_batch_constructor = DenseBlock(3, 3).to(self.device)
+        elif g_batch_constructor == 'TextChannelAttentionDenseBlock':
+            print(f"Using TextChannelAttentionDenseBlock as g_batch_constructor")
+            self.g_batch_constructor = TextChannelAttentionDenseBlock(3, 3).to(self.device)
+        elif g_batch_constructor == 'TextChannelAttentionDenseBlock1':
+            print(f"Using TextChannelAttentionDenseBlock1 as g_batch_constructor")
+            self.g_batch_constructor = TextChannelAttentionDenseBlock1(3, 3).to(self.device)
+        else:
+            self.g_batch_constructor = None
+            print(f"No g_batch_constructor is used")
         self.netG = networks.define_G(opt).to(self.device)
         self.intermediate_outputs = None
         if opt['dist']:
@@ -163,7 +177,7 @@ class IRNpModel(BaseModel):
 
     #     return l_forw_fit
 
-    def loss_forward(self, out, y, z = None):
+    def loss_forward(self, out, y, z = None, g_batch = None):
         losses = {}
         l_forw_fit = self.train_opt['lambda_fit_forw'] * self.Reconstruction_forw(out[:, :3, :, :], y)
         if self.train_opt['lambda_fit_forw'] > 0:
@@ -172,6 +186,11 @@ class IRNpModel(BaseModel):
         if self.train_opt['lambda_lpips_forw'] > 0:
             l_forw_lpips = self.train_opt['lambda_lpips_forw'] * self.LPIPS_loss(out[:, :3, :, :], y).mean()
             losses['l_forw_lpips'] = l_forw_lpips
+
+        if g_batch is not None:
+            diff = out[:, 3:, :, :] - g_batch
+            l_forw_g_batch = self.train_opt.get('lambda_g_batch_forw', 0.0) * torch.sum(diff**2) / diff.shape[0]
+            losses['l_forw_g_batch'] = l_forw_g_batch
 
         if z is not None:
             z = z.reshape([out.shape[0], -1])
@@ -248,7 +267,35 @@ class IRNpModel(BaseModel):
             
         ########################
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        g_batch = self.gaussian_batch(zshape)
+        
+
+        # 用网络通过 LR 和 text_embedding 生成  self.output[:, :3, :, :]
+        # 方法一: DenseNet直接生成(unconditional)
+        # 方法二: TextChannelAttentionDenseBlock生成(conditional)
+        if isinstance(self.g_batch_constructor, DenseBlock):
+            g_batch = self.g_batch_constructor(LR)
+        elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock):
+            text_embedding = self.text_embedding.reshape([-1, 768])
+            g_batch = self.g_batch_constructor(LR, text_embedding)
+        elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock1):
+            text_embedding = self.text_embedding.reshape([-1, 768])
+            g_batch = self.g_batch_constructor(LR, text_embedding)
+        else:
+            g_batch = self.gaussian_batch(zshape)
+        # use LR (and text_embedding) to generate g_batch to help recover the lost info when discarding self.output[:, 3:, :, :]
+        # Method 1. use MSE to align the difference between self.output[:, 3:, :, :] and g_batch
+        # Method 2. directly take g_batch as a learnable parameter for the network to learn and use it as a guidance to recover the lost info
+
+        if compress_aware:
+            if isinstance(self.g_batch_constructor, DenseBlock):
+                g_batch = self.g_batch_constructor(LR_compressed)
+            elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock):
+                g_batch = self.g_batch_constructor(LR_compressed, text_embedding)
+            elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock1):
+                g_batch = self.g_batch_constructor(LR_compressed, text_embedding)
+            else:
+                g_batch = self.gaussian_batch(zshape)
+
         y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
         y1 = torch.cat((LR_compressed, gaussian_scale * g_batch), dim=1) if compress_aware else None
 
@@ -256,7 +303,7 @@ class IRNpModel(BaseModel):
         self.fake_H_compressed = self.netG(x=y1, rev=True, text_embedding=self.text_embedding) if compress_aware else None
 
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
-            l_forw= self.loss_forward(self.output, self.ref_L.detach(), self.output[:, 3:, :, :])
+            l_forw= self.loss_forward(self.output, self.ref_L.detach(), self.output[:, 3:, :, :], g_batch)
             # l_back_rec, l_back_fea, l_back_gan = self.loss_backward(self.real_H, self.fake_H)
             l_back= self.loss_backward(self.real_H, self.fake_H)
             if compress_aware:
@@ -267,7 +314,7 @@ class IRNpModel(BaseModel):
             
 
             # l_forw_fit + l_back_rec + l_forw_ce + l_forw_lpips + l_back_lpips
-            loss += l_forw.get('l_forw_fit', 0.0) + l_back.get('l_back_rec', 0.0) + l_forw.get('l_forw_ce', 0.0) + l_forw.get('l_forw_lpips', 0.0) + l_back.get('l_back_lpips', 0.0)
+            loss += l_forw.get('l_forw_fit', 0.0) + l_back.get('l_back_rec', 0.0) + l_forw.get('l_forw_ce', 0.0) + l_forw.get('l_forw_lpips', 0.0) + l_back.get('l_back_lpips', 0.0) + l_forw.get('l_forw_g_batch', 0.0)
             
 
             loss.backward()
@@ -387,7 +434,17 @@ class IRNpModel(BaseModel):
                 else:
                     y_diffjpeg_forw = None
             else:
-                y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
+                if isinstance(self.g_batch_constructor, DenseBlock):
+                    g_batch = self.g_batch_constructor(self.forw_L)
+                elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock):
+                    text_embedding = self.text_embedding.reshape([-1, 768])
+                    g_batch = self.g_batch_constructor(self.forw_L, text_embedding)
+                elif isinstance(self.g_batch_constructor, TextChannelAttentionDenseBlock1):
+                    text_embedding = self.text_embedding.reshape([-1, 768])
+                    g_batch = self.g_batch_constructor(self.forw_L, text_embedding)
+                else:
+                    g_batch = self.gaussian_batch(zshape)
+                y_forw = torch.cat((self.forw_L, gaussian_scale * g_batch), dim=1)
             
             self.fake_H = self.netG(x=y_forw, rev=True, text_embedding=self.text_embedding)[:, :3, :, :]
             if compress_flag:
