@@ -5,7 +5,7 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_2.24.0
+name: style_inv_3.5.0
 use_tb_logger: False
 model: IRNca
 distortion: sr
@@ -103,14 +103,14 @@ train:
 
   val_freq: !!float 100
 
-  lambda_fit_forw: 1.
-  lambda_rec_back: 4.
+  lambda_fit_forw: 2.
+  lambda_rec_back: 10.
   lambda_ce_forw: 0.
-  lambda_lpips_forw: 2.
-  lambda_lpips_back: 2.
+  lambda_lpips_forw: 1.
+  lambda_lpips_back: 8.
   lambda_ssim_forw: 0.
   lambda_ssim_back: 1.
-  loss_cw: 8.0
+  loss_cw: 1.0
   loss_rw: 0.0
   
   weight_decay_G: !!float 1e-5

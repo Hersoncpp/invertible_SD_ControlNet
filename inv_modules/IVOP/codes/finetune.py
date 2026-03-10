@@ -29,13 +29,14 @@ def init_dist(backend='nccl', **kwargs):
 def main():
     #### options
     parser = argparse.ArgumentParser()
-    parser.add_argument('-opt', type=str, help='Path to option YMAL file.')
+    parser.add_argument('--opt', type=str, help='Path to option YMAL file.')
     parser.add_argument('--launcher', choices=['none', 'pytorch'], default='none',
                         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
     # print(args.opt)
     opt = option.parse(args.opt, is_train=True)
+
     # print(opt)
     print("compress_flag: ", opt['compress_flag'])
     #### distributed training settings
@@ -49,7 +50,7 @@ def main():
         world_size = torch.distributed.get_world_size()
         rank = torch.distributed.get_rank()
 
-    #### loading resume state if exists
+    #### loading resume state if exists (use original experiments/ paths for loading)
     if opt['path'].get('resume_state', None):
         # distributed resuming: all load into default GPU
         device_id = torch.cuda.current_device()
@@ -57,17 +58,31 @@ def main():
                                   map_location=lambda storage, loc: storage.cuda(device_id))
         print(resume_state)
         option.check_resume(opt, resume_state['iter'])  # check resume options
+        # Finetune resume: load G from the source experiment (where resume_state lives), not from the new finetune output dir
+        resume_state_dir = os.path.dirname(opt['path']['resume_state'])
+        source_exp_root = os.path.dirname(resume_state_dir)
+        opt['path']['pretrain_model_G'] = os.path.join(source_exp_root, 'models', '{}_G.pth'.format(resume_state['iter']))
     else:
         # warning: cannot resume
         resume_state = None
         print('Cannot find resume_state. Training from scratch.')
+
+    # Override output paths AFTER check_resume: finetune outputs go to finetune/ instead of experiments/
+    # This preserves the original pretrain_model_G path for loading, but redirects all outputs.
+    finetune_root = os.path.join(opt['path']['root'], 'finetune', opt['name'])
+    opt['path']['experiments_root'] = finetune_root
+    opt['path']['models'] = os.path.join(finetune_root, 'models')
+    opt['path']['training_state'] = os.path.join(finetune_root, 'training_state')
+    opt['path']['log'] = finetune_root
+    opt['path']['val_images'] = os.path.join(finetune_root, 'val_images')
     #### mkdir and loggers
     if rank <= 0:  # normal training (rank -1) OR distributed training (rank 0)
         if resume_state is None:
             util.mkdir_and_rename(
                 opt['path']['experiments_root'])  # rename experiment folder if exists
-            util.mkdirs((path for key, path in opt['path'].items() if not key == 'experiments_root'
-                         and 'pretrain_model' not in key and 'resume' not in key))
+        # Always ensure finetune output directories exist
+        util.mkdirs((path for key, path in opt['path'].items() if not key == 'experiments_root'
+                     and 'pretrain_model' not in key and 'resume' not in key))
 
         # config loggers. Before it, the log will not work
         util.setup_logger('base', opt['path']['log'], 'train_' + opt['name'], level=logging.INFO,
@@ -113,6 +128,7 @@ def main():
             total_iters = int(opt['train']['niter'])
             total_epochs = int(math.ceil(total_iters / train_size))
             if opt['dist']:
+                print("dist training")
                 train_sampler = DistIterSampler(train_set, world_size, rank, dataset_ratio)
                 total_epochs = int(math.ceil(total_iters / (train_size * dataset_ratio)))
             else:
@@ -160,7 +176,7 @@ def main():
                 break
             #### training
             model.feed_data(train_data, identity=opt['identity'])
-            model.optimize_parameters(current_step, compress_flag=opt['compress_flag'])
+            model.optimize_parameters(current_step, compress_aware=opt['compress_flag'])
 
             #### update learning rate
             model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
@@ -181,7 +197,7 @@ def main():
 
             # validation
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
-                avg_psnr = 0.0
+                avg_psnr = avg_psnr_diff = 0.0
                 avg_psnr_l = 0.0
                 idx = 0
                 for _, val_data in tqdm(enumerate(val_loader)):
@@ -197,15 +213,21 @@ def main():
                     visuals = model.get_current_visuals()
                     sr_img = util.tensor2img(visuals['SR'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
-
+                    if opt['compress_mode'] == 'diffjpeg':
+                        sr_img_diff = util.tensor2img(visuals['SR_compressed'])
                     lr_img = util.tensor2img(visuals['LR'])
-
                     gtl_img = util.tensor2img(visuals['LR_ref'])
 
                     # Save SR images for reference
                     save_img_path = os.path.join(img_dir,
                                                  '{:s}_{:d}.jpg'.format(img_name, current_step))
                     util.save_img(sr_img, save_img_path)
+
+                    # Save SR compressed images for reference
+                    if opt['compress_mode'] == 'diffjpeg':
+                        save_img_path_compressed = os.path.join(img_dir,
+                                                     '{:s}_diff_{:d}.jpg'.format(img_name, current_step))
+                        util.save_img(sr_img_diff, save_img_path_compressed)
 
                     # Save LR images
                     save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.jpg'.format(img_name, current_step))
@@ -222,27 +244,28 @@ def main():
                     crop_size = opt['scale']
                     gt_img = gt_img / 255.
                     sr_img = sr_img / 255.
+                    sr_img_diff = sr_img_diff / 255. if opt['compress_mode'] == 'diffjpeg' else None
                     gtl_img = gtl_img / 255.
                     lr_img = lr_img / 255.
-                    # print("crop_size:")
-                    # print(crop_size)
-                    # print(sr_img.shape, gt_img.shape)
                     cropped_sr_img = sr_img[crop_size:-crop_size, crop_size:-crop_size, :]
+                    cropped_sr_img_diff = sr_img_diff[crop_size:-crop_size, crop_size:-crop_size, :] if opt['compress_mode'] == 'diffjpeg' else None
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_lr_img = lr_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_gtl_img = gtl_img[crop_size:-crop_size, crop_size:-crop_size, :]
-                    # print(cropped_sr_img.shape, cropped_gt_img.shape)
                     avg_psnr += util.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
+                    if opt['compress_mode'] == 'diffjpeg':
+                        avg_psnr_diff += util.calculate_psnr(cropped_sr_img_diff * 255, cropped_gt_img * 255)
                     avg_psnr_l += util.calculate_psnr(cropped_lr_img * 255, cropped_gtl_img * 255)
 
                 avg_psnr = avg_psnr / idx
+                avg_psnr_diff = avg_psnr_diff / idx if opt['compress_mode'] == 'diffjpeg' else -1
                 avg_psnr_l = avg_psnr_l / idx
 
                 # log
-                logger.info('# Validation # PSNR_SOURCE: {:.4e} # PSNR_TARGET: {:.4e}.'.format(avg_psnr, avg_psnr_l))
+                logger.info('# Validation # PSNR_SOURCE: {:.4e}  # PSNR_SOURCE_DIFF: {:.4e}  # PSNR_TARGET: {:.4e}'.format(avg_psnr, avg_psnr_diff, avg_psnr_l))
                 logger_val = logging.getLogger('val')  # validation logger
-                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}.'.format(
-                    epoch, current_step, avg_psnr))
+                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}, {:.4e}, {:.4e}.'.format(
+                    epoch, current_step, avg_psnr, avg_psnr_diff, avg_psnr_l))
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:
                     tb_logger.add_scalar('psnr', avg_psnr, current_step)

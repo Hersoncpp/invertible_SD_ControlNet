@@ -159,7 +159,7 @@ class IRNcaModel(BaseModel):
             transform_ops = T.Compose([
                 T.RandomHorizontalFlip(p=0.5),
                 T.RandomVerticalFlip(p=0.5),
-                T.RandomRotation(degrees=(0, 30))
+                # T.RandomRotation(degrees=(0, 30))
             ])
 
             seed = torch.randint(0, 2**32, (1,)).item()  # Generate a random seed
@@ -275,19 +275,21 @@ class IRNcaModel(BaseModel):
         LR = self.output[:, :3, :, :]
 
         # Quantization
-        LR_corrupted = self.Quantization(LR)
+        LR = self.Quantization(LR)
+        
         # JPEG Compression
         if compress_aware:
             print('using jpeg compression')
             LR_corrupted = self.Compression(LR_corrupted).to(self.device)
         
-        z_ar = self.netAR(LR_corrupted)
+        z_ar = self.netAR(LR_corrupted) if compress_aware else self.netAR(LR)
         # LR_recovered = LR_compressed if compress_aware else LR_quantize
         
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
         g_batch = self.gaussian_batch(LR.shape)
-        y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
-        y1 = torch.cat((LR_corrupted, z_ar), dim=1)
+        
+        y0 = torch.cat((LR, z_ar), dim=1)
+        y1 = torch.cat((LR_corrupted, z_ar), dim=1) if compress_aware else None
         
         self.fake_H = self.netG(x=y0, rev=True)
         self.fake_H_compressed = self.netG(x=y1, rev=True) if compress_aware else None
@@ -393,6 +395,7 @@ class IRNcaModel(BaseModel):
         if save_intermediate:
             self.netG.module.intermediate_outputs = {}
         self.netAR.eval()
+        
         with torch.no_grad():
             if self.prompt is not None:
                 LR = self.netG(x=self.input, prompt=self.prompt, uninv_input=self.uninv_input)[:, :3, :, :]
@@ -413,7 +416,6 @@ class IRNcaModel(BaseModel):
                 return tmp_forw_L_img
             
             if compress_flag:
-                
                 reg_y_forw = regular_jpeg_compress(RL_quantized)
                 z_ar = self.netAR(reg_y_forw)
                 y_forw = torch.cat((reg_y_forw, z_ar), dim=1)
@@ -424,6 +426,10 @@ class IRNcaModel(BaseModel):
                     z_ar = self.netAR(y_diffjpeg_forw)
                     y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, z_ar), dim=1)
                     self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :]
+            else:
+                z_ar = self.netAR(RL_quantized)
+                y_forw = torch.cat((RL_quantized, z_ar), dim=1)
+                self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
 
         self.netG.module.save_intermediate = False
         if save_intermediate:
