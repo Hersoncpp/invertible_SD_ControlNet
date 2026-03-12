@@ -280,7 +280,7 @@ class IRNcaModel(BaseModel):
         # JPEG Compression
         if compress_aware:
             print('using jpeg compression')
-            LR_corrupted = self.Compression(LR_corrupted).to(self.device)
+            LR_corrupted = self.Compression(LR).to(self.device)
         
         z_ar = self.netAR(LR_corrupted) if compress_aware else self.netAR(LR)
         # LR_recovered = LR_compressed if compress_aware else LR_quantize
