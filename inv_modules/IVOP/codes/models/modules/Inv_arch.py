@@ -62,13 +62,13 @@ class InvBlockAugmented(nn.Module):
         if not rev:
             y1 = x1 + self.F(x2)
             self.s = self.clamp * (torch.sigmoid(self.H(y1)) * 2 - 1)
-            # G_hat = self.G(y1) + self.A.mul(torch.exp(self.s))
-            G_hat = self.A * torch.exp(self.s) + self.B
+            G_hat = self.G(y1) + self.A.mul(torch.exp(self.s))
+            # G_hat = self.A * torch.exp(self.s) + self.B
             y2 = x2.mul(torch.exp(self.s)) + G_hat
         else:
             self.s = self.clamp * (torch.sigmoid(self.H(x1)) * 2 - 1)
-            # G_hat = self.G(x1) + self.A.mul(torch.exp(self.s))
-            G_hat = self.A * torch.exp(self.s) + self.B
+            G_hat = self.G(x1) + self.A.mul(torch.exp(self.s))
+            # G_hat = self.A * torch.exp(self.s) + self.B
             y2 = (x2 - G_hat).div(torch.exp(self.s))
             y1 = x1 - self.F(y2)
 

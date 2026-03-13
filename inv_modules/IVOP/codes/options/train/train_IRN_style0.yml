@@ -5,14 +5,14 @@
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss_no_rec
 # name: 01_IRN_DB_scratch_5K_RAIN_PRINCESS_no_zloss
 # name: test_wmf_twoBranches_4_2
-name: style_inv_3.5.0
+name: style_inv_3.13.0
 use_tb_logger: False
 model: IRNca
 distortion: sr
 scale: 1
 gpu_ids: [0, 1, 2, 3, 4, 5, 6, 7]
 identity: True
-compress_flag: True
+compress_flag: False
 compress_mode: diffjpeg
 # suffix: "predict"
 #### datasets

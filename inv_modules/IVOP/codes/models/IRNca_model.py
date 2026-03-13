@@ -275,42 +275,35 @@ class IRNcaModel(BaseModel):
         LR = self.output[:, :3, :, :]
 
         # Quantization
-        LR = self.Quantization(LR)
+        LR_corrupted = self.Quantization(LR)
         
         # JPEG Compression
         if compress_aware:
             print('using jpeg compression')
-            LR_corrupted = self.Compression(LR).to(self.device)
+            LR_corrupted = self.Compression(LR_corrupted).to(self.device)
         
-        z_ar = self.netAR(LR_corrupted) if compress_aware else self.netAR(LR)
+        z_ar = self.netAR(LR_corrupted)
         # LR_recovered = LR_compressed if compress_aware else LR_quantize
         
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
         g_batch = self.gaussian_batch(LR.shape)
         
-        y0 = torch.cat((LR, z_ar), dim=1)
-        y1 = torch.cat((LR_corrupted, z_ar), dim=1) if compress_aware else None
+        y = torch.cat((LR_corrupted, z_ar), dim=1)
+        # y1 = torch.cat((LR_corrupted, z_ar), dim=1) if compress_aware else None
         
-        self.fake_H = self.netG(x=y0, rev=True)
-        self.fake_H_compressed = self.netG(x=y1, rev=True) if compress_aware else None
-
-        
+        self.fake_H = self.fake_H_compressed = self.netG(x=y, rev=True)
         
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
             l_forw = self.loss_forward(self.output, self.ref_L.detach(), z)
             l_back = self.loss_backward(self.real_H, self.fake_H)
-            if compress_aware:
-                cw = self.cw # jpeg weight
-                rw = self.rw # png weight
-                l_back_compressed = self.loss_backward(self.real_H, self.fake_H_compressed)
-                l_back = {k: l_back.get(k, .0) * rw + l_back_compressed.get(k, .0) * cw for k in set(l_back)}
+            cw = self.cw # jpeg weight
+            l_back = {l_back.get(k, .0) * cw for k in set(l_back)}
             
             loss += l_forw.get('l_forw_fit', 0.0) \
                   + l_back.get('l_back_rec', 0.0) \
                   + l_forw.get('l_forw_ce', 0.0) \
                   + l_forw.get('l_forw_lpips', 0.0) \
                   + l_back.get('l_back_lpips', 0.0) \
-            
 
             loss.backward()
 
@@ -419,17 +412,17 @@ class IRNcaModel(BaseModel):
                 reg_y_forw = regular_jpeg_compress(RL_quantized)
                 z_ar = self.netAR(reg_y_forw)
                 y_forw = torch.cat((reg_y_forw, z_ar), dim=1)
-                self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
+                self.fake_H = self.netG(x=y_forw, rev=True)
                 
                 if self.compress_mode == 'diffjpeg':
                     y_diffjpeg_forw = self.Compression(RL_quantized).to(self.device)
                     z_ar = self.netAR(y_diffjpeg_forw)
                     y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, z_ar), dim=1)
-                    self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :]
+                    self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)
             else:
                 z_ar = self.netAR(RL_quantized)
                 y_forw = torch.cat((RL_quantized, z_ar), dim=1)
-                self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
+                self.fake_H = self.netG(x=y_forw, rev=True)
 
         self.netG.module.save_intermediate = False
         if save_intermediate:
