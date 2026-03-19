@@ -10,7 +10,6 @@ from .base_model import BaseModel
 from models.modules.loss import GANLoss, ReconstructionLoss, SSIMLoss
 from models.modules.Quantization import Quantization
 from models.modules.Jpeg_Compress import Jpeg_Compress_Layer
-from models.modules.DiffJPEG.DiffJPEG import DiffJPEG
 import lpips
 import utils.util as util
 import cv2
@@ -27,35 +26,23 @@ class IRNpModel(BaseModel):
             self.rank = -1  # non dist training
         train_opt = opt['train']
         test_opt = opt['test']
-        self.tmp_file_name = opt['name']
-        print(f"Tmp file saved at {self.tmp_file_name}.")
         self.train_opt = train_opt
         self.test_opt = test_opt
         self.prompt = None
-        self.cw = train_opt['loss_cw']
-        self.rw = train_opt['loss_rw']
-        print(f"cw: {self.cw}, rw: {self.rw}")
-        
+
         self.netG = networks.define_G(opt).to(self.device)
         if opt['dist']:
             self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
         else:
-            print(f"Using {torch.cuda.device_count()} GPUs")
             self.netG = DataParallel(self.netG)
         # print network
         self.print_network()
         self.load()
 
+        self.tmp_file_name = opt['name']
+        print(f"Tmp file saved at {self.tmp_file_name}.")
         self.Quantization = Quantization()
-        if opt['compress_mode'] == 'diffjpeg':
-            self.compress_mode = 'diffjpeg'
-            print("Using diffjpeg compression")
-            r = opt['datasets']['train']['resolution']
-            self.Compression = DiffJPEG(r, r, quality=95).to(self.device)
-        else:
-            self.compress_mode = 'regjpeg'
-            print("Using regular jpeg compression")
-            self.Compression = Jpeg_Compress_Layer(self.tmp_file_name)
+        self.Compression = Jpeg_Compress_Layer(self.tmp_file_name)
 
         if self.is_train:
             # self.netD = networks.define_D(opt).to(self.device)
@@ -233,30 +220,21 @@ class IRNpModel(BaseModel):
         ########################
         # Quantization before feeding into the invertible model
         LR = self.Quantization(self.output[:, :3, :, :])
-        
+
         if compress_aware:
-            print('integrating jpeg compression')
-            LR_compressed = self.Compression(LR).to(self.device)
-            
+            print('using jpeg compression')
+            LR = self.Compression(LR).to(self.device)
+        
         ########################
         gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        g_batch = self.gaussian_batch(zshape)
-        y0 = torch.cat((LR, gaussian_scale * g_batch), dim=1)
-        y1 = torch.cat((LR_compressed, gaussian_scale * g_batch), dim=1) if compress_aware else None
+        y_ = torch.cat((LR, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
 
-        self.fake_H = self.netG(x=y0, rev=True)
-        self.fake_H_compressed = self.netG(x=y1, rev=True) if compress_aware else None
+        self.fake_H = self.netG(x=y_, rev=True)
 
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
             l_forw= self.loss_forward(self.output, self.ref_L.detach(), self.output[:, 3:, :, :])
             # l_back_rec, l_back_fea, l_back_gan = self.loss_backward(self.real_H, self.fake_H)
             l_back= self.loss_backward(self.real_H, self.fake_H)
-            if compress_aware:
-                cw = self.cw # jpeg weight
-                rw = self.rw # png weight
-                l_back_compressed= self.loss_backward(self.real_H, self.fake_H_compressed)
-                l_back = {k: l_back.get(k, .0) * rw + l_back_compressed.get(k, .0) * cw for k in set(l_back)}
-            
 
             # l_forw_fit + l_back_rec + l_forw_ce + l_forw_lpips + l_back_lpips
             loss += l_forw.get('l_forw_fit', 0.0) + l_back.get('l_back_rec', 0.0) + l_forw.get('l_forw_ce', 0.0) + l_forw.get('l_forw_lpips', 0.0) + l_back.get('l_back_lpips', 0.0)
@@ -351,7 +329,7 @@ class IRNpModel(BaseModel):
                 # print('before saving forw_L min max:', self.forw_L.min().item(), self.forw_L.max().item())
                 # print(self.forw_L)
                 # save forw_L for using cv2.imwrite
-                save_path_tmp = f'tmp_forw_L_{self.tmp_file_name}.jpg'
+                save_path_tmp = 'tmp_forw_L.jpg'
                 tmp_forw_L_img = util.tensor2img(self.forw_L)
                 # util.save_img(tmp_forw_L_img, save_path_tmp, quality=95)
                 util.save_img(tmp_forw_L_img, save_path_tmp)
@@ -367,19 +345,10 @@ class IRNpModel(BaseModel):
                 tmp_forw_L_img = torch.from_numpy(np.transpose(tmp_forw_L_img, (2, 0, 1))).float().unsqueeze(0).to(self.device)
                 # print('after jpg compression forw_L min max:', tmp_forw_L_img.min().item(), tmp_forw_L_img.max().item())
                 # print(tmp_forw_L_img)
-                g_batch = self.gaussian_batch(zshape)
-                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * g_batch), dim=1)
-                
-                if self.compress_mode == 'diffjpeg':
-                    y_diffjpeg_forw = self.Compression(self.forw_L)
-                    y_diffjpeg_forw = torch.cat((y_diffjpeg_forw, gaussian_scale * g_batch), dim=1)
-                else:
-                    y_diffjpeg_forw = None
+                y_forw = torch.cat((tmp_forw_L_img, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
             else:
                 y_forw = torch.cat((self.forw_L, gaussian_scale * self.gaussian_batch(zshape)), dim=1)
-            
             self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
-            self.fake_H_compressed = self.netG(x=y_diffjpeg_forw, rev=True)[:, :3, :, :] if self.compress_mode == 'diffjpeg' else None
 
         self.netG.train()
 
@@ -413,7 +382,6 @@ class IRNpModel(BaseModel):
         out_dict['SR'] = self.fake_H.detach()[0].float().cpu()
         out_dict['LR'] = self.forw_L.detach()[0].float().cpu()
         out_dict['GT'] = self.real_H.detach()[0].float().cpu()
-        out_dict['SR_compressed'] = self.fake_H_compressed.detach()[0].float().cpu() if self.fake_H_compressed is not None else None
         return out_dict
 
     def print_network(self):

@@ -37,24 +37,23 @@ class SelfAttention(nn.Module):
     def __init__(self, channel_in, channel_out, init='xavier', gc=24, bias=True):
         super(SelfAttention, self).__init__()
         self.conv1 = nn.Conv2d(channel_in, gc, 3, 1, 1, bias=bias)
-        self.conv2 = nn.Conv2d(gc, gc * 2, 3, 1, 1, bias=bias)
-        self.conv3 = nn.Conv2d(gc * 2, gc * 2, 3, 1, 1, bias=bias)
+        self.conv2 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
+        self.conv3 = nn.Conv2d(gc, gc, 3, 1, 1, bias=bias)
         
         self.skip1 = nn.Conv2d(channel_in, gc, 1, 1, 0, bias=bias)
-        self.skip2 = nn.Conv2d(gc, gc, 1, 1, 0, bias=bias)
-        self.skip3 = nn.Conv2d(gc, channel_out, 1, 1, 0, bias=bias)
+        self.skip2 = nn.Conv2d(gc, channel_out, 1, 1, 0, bias=bias)
         
-        self.ca = ChannelAttention(gc * 2, bias)
+        self.ca = ChannelAttention(gc, bias)
         self.sa = SpatialAttention(bias=bias)
         
-        self.conv_out = nn.Conv2d(gc * 2, channel_out, 3, 1, 1, bias=bias)
+        self.conv_out = nn.Conv2d(gc, channel_out, 3, 1, 1, bias=bias)
         
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
         if init == 'xavier':
-            mutil.initialize_weights_xavier([self.conv1, self.conv2, self.conv3, self.conv_out, self.ca.fc1, self.ca.fc2, self.sa.conv], 0.1)
+            mutil.initialize_weights_xavier([self.conv1, self.conv2, self.conv3, self.conv_out, self.ca.fc1, self.ca.fc2, self.sa.conv, self.skip1, self.skip2], 0.1)
         else:
-            mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv_out, self.ca.fc1, self.ca.fc2, self.sa.conv], 0.1)
+            mutil.initialize_weights([self.conv1, self.conv2, self.conv3, self.conv_out, self.ca.fc1, self.ca.fc2, self.sa.conv, self.skip1, self.skip2], 0.1)
 
     def forward(self, x):
         x1 = self.lrelu(self.conv1(x))
@@ -67,9 +66,8 @@ class SelfAttention(nn.Module):
         
         s1 = self.skip1(x)
         s2 = self.skip2(s1)
-        s3 = self.skip3(s2)
         
-        out = y + s3
+        out = y + s2
         return out
     
 class CrossChannelAttention(nn.Module):

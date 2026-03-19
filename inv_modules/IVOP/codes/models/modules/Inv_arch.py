@@ -249,8 +249,8 @@ class InvRescaleNetD(nn.Module):
             print("#### fusion block type:", "InvBlockAugmented")
             # print("#### fusion block type:", "InvBlockExp")
             for j in range(block_num[2]):
-                # b = InvBlockExp(fusion_submodule_type, 6, 3)
-                b = InvBlockAugmented(fusion_submodule_type, 6, 3)
+                # b = InvBlockAugmented(fusion_submodule_type, 6, 3)
+                b = InvBlockExp(fusion_submodule_type, 6, 3)
                 operations_final.append(b)
 
         self.operations_cover = nn.ModuleList(operations_cover)
@@ -336,15 +336,6 @@ class InvRescaleNetD(nn.Module):
         jacobian = 0
 
         if not rev: 
-            for op in self.operations_secret:
-                out = op.forward(out, rev)
-                if self.save_intermediate:
-                    if self.intermediate_outputs.get('forward_operations_secret') is None:
-                        self.intermediate_outputs['forward_operations_secret'] = []
-                    self.intermediate_outputs['forward_operations_secret'].append(out.detach().cpu().numpy().squeeze(0))
-                if cal_jacobian:
-                    jacobian += op.jacobian(out, rev)
-                    
             if uninv_input is not None:
                 out_uninv = self.uninvBranch(uninv_input)
             elif type(self.uninvBranch) == nn.Sequential:
@@ -354,6 +345,15 @@ class InvRescaleNetD(nn.Module):
                 input_dict['input_image'] = x
                 input_dict['prompt'] = prompt
                 out_uninv = self.uninvBranch(**input_dict)
+            
+            for op in self.operations_secret:
+                out = op.forward(out, rev)
+                if self.save_intermediate:
+                    if self.intermediate_outputs.get('forward_operations_secret') is None:
+                        self.intermediate_outputs['forward_operations_secret'] = []
+                    self.intermediate_outputs['forward_operations_secret'].append(out.detach().cpu().numpy().squeeze(0))
+                if cal_jacobian:
+                    jacobian += op.jacobian(out, rev)
 
             for op in self.operations_cover:
                 out_uninv = op.forward(out_uninv, rev)
@@ -388,8 +388,8 @@ class InvRescaleNetD(nn.Module):
                 if cal_jacobian:
                     jacobian += op.jacobian(out, rev)
         
-            out_secret = out[:,3:,:,:] # !!!
-            out_cover = out[:,:3,:,:]
+            out_secret = out[:, 3:, :,:] # !!!
+            out_cover = out[:, :3, :,:]
             for op in reversed(self.operations_secret):
                 out_secret = op.forward(out_secret, rev)
                 if self.save_intermediate:

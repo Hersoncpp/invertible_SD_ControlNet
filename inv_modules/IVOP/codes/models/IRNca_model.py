@@ -154,20 +154,20 @@ class IRNcaModel(BaseModel):
         self.ref_L = data['LQ'].to(self.device)  # LQ
         self.real_H = data['GT'].to(self.device)  # GT
 
-        if transform:
-            # Define the transformations
-            transform_ops = T.Compose([
-                T.RandomHorizontalFlip(p=0.5),
-                T.RandomVerticalFlip(p=0.5),
-                # T.RandomRotation(degrees=(0, 30))
-            ])
+        # if transform:
+        #     # Define the transformations
+        #     transform_ops = T.Compose([
+        #         T.RandomHorizontalFlip(p=0.5),
+        #         T.RandomVerticalFlip(p=0.5),
+        #         # T.RandomRotation(degrees=(0, 30))
+        #     ])
 
-            seed = torch.randint(0, 2**32, (1,)).item()  # Generate a random seed
-            torch.manual_seed(seed)  # Set the seed for deterministic transformation
-            self.ref_L = transform_ops(self.ref_L)
+        #     seed = torch.randint(0, 2**32, (1,)).item()  # Generate a random seed
+        #     torch.manual_seed(seed)  # Set the seed for deterministic transformation
+        #     self.ref_L = transform_ops(self.ref_L)
 
-            torch.manual_seed(seed)  # Reset the seed for the same transformation
-            self.real_H = transform_ops(self.real_H)
+        #     torch.manual_seed(seed)  # Reset the seed for the same transformation
+        #     self.real_H = transform_ops(self.real_H)
         
         if data.get('prompt', None) is not None:
             self.prompt = data['prompt']
@@ -285,8 +285,8 @@ class IRNcaModel(BaseModel):
         z_ar = self.netAR(LR_corrupted)
         # LR_recovered = LR_compressed if compress_aware else LR_quantize
         
-        gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        g_batch = self.gaussian_batch(LR.shape)
+        # gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
+        # g_batch = self.gaussian_batch(LR.shape)
         
         y = torch.cat((LR_corrupted, z_ar), dim=1)
         # y1 = torch.cat((LR_corrupted, z_ar), dim=1) if compress_aware else None
@@ -297,7 +297,7 @@ class IRNcaModel(BaseModel):
             l_forw = self.loss_forward(self.output, self.ref_L.detach(), z)
             l_back = self.loss_backward(self.real_H, self.fake_H)
             cw = self.cw # jpeg weight
-            l_back = {l_back.get(k, .0) * cw for k in set(l_back)}
+            l_back = {k: l_back.get(k, .0) * cw for k in set(l_back)}
             
             loss += l_forw.get('l_forw_fit', 0.0) \
                   + l_back.get('l_back_rec', 0.0) \
